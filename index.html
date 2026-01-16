@@ -21,7 +21,7 @@ html, body {
 
 body {
     background: #3D0000;
-    color: red;
+    color: red; 
     font-family: 'Atkinson Hyperlegible Mono', monospace;
     transition: background 0.3s;
 }
@@ -84,7 +84,7 @@ body {
     justify-content: center;
     align-items: center;
     gap: 20px;
-    box-shadow: 0 0 10px red;.
+    box-shadow: 0 0 10px red;
 }
 
 button {
@@ -94,10 +94,12 @@ button {
     padding: 20px 60px;
     font-size: 4vh;
     cursor: pointer;
+    border-radius: 10px;
+    box-shadow: 0px 0px 25px rgba(255, 0, 0, 0.5);
 }
 
 button:active {
-    background: red;z
+    background: red;
     color: black;
 }
 
@@ -113,22 +115,34 @@ button:disabled {
     0 0 50px red,
     0 0 100px red,
     0 0 160px darkred;
+    animation: glitch 0.2s infinite;
 }
-#backBtn {
-position: relative;
-  top: 110px;
-  left: 20px;
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px)}
+  40% { transform: translate(2px, -2px); }
+  60% { transform: translate(-1px, 1px); }
+  80% { transform: translate(1px, -1px); }
+  100% { transform: translate(0, 0); }
 }
 @keyframes shake {
   0% { transform: translate(0, 0); }
   25% { transform: translate(-2px, 1px); }
   50% { transform: translate(2px, -1px); }
   75% { transform: translate(-1px, -2px); }
-  100% { transform: translate(0, 0); }
+  100% { transform: translate(0); }
 }
 
 .low-health {
   animation: shake 0.2s infinite;
+}
+#decision {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 25px;
 }
 </style>
 </head>
@@ -136,7 +150,7 @@ position: relative;
 <body>
 
 <div id="menu" class="scene">
-    <p>Alpha 1.5</p>
+    <p>Alpha 2.0</p>
     <h1 id="title">Nightmare Mentality</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="helpBtn">Ayuda</button>
@@ -165,18 +179,24 @@ position: relative;
         </div>
     </div>
 </div>
+<button id="backBtn">Volver</button>
 <div id="help" class="scene hidden">
     <center><h1>¿Como jugar?</h1></center>
-    <p>En este juego el protagonista no escapa de monstruos, si no que de su propia mente.
+    <p>En este juego el protagonista no escapa de monstruos, si no que escapa de su propia mente.
     acá la mente es su peor enemigo, solo hay una forma de calmar y relajar la mente. para alcanzar esa forma, hay procurar no gastar
-    toda sus fuerzas en caminar hacia lo que la mente le impide llegar, utilizando como obstaculos los "monstruos".
+    toda sus fuerzas en caminar hacia lo que la mente le impide llegar, su mente utiliza como obstaculo los "monstruos".
     un pico de panico es letal para el protagonista, haciendo que pierda la vida de la forma mas rara.
     para evitarlo, es mejor tomar medidas, ya sea encontrando objetos de defensa o objetos de salud fisica y mental</p>
-    <button id="backBtn">Volver</button>
+</div>
+<div id="decision" class="scene hidden">
+<h3 id="decisionMessage"></h3>
+<button id="takeBtn">Tomar</button>
+<button id="leaveBtn">Dejar</button>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("JS CARGADO");
 
     /* ELEMENTOS */
     const startBtn = document.getElementById("startBtn");
@@ -192,6 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const anxietyText = document.getElementById("anxiety");
     const helpBtn = document.getElementById("helpBtn");
     const backBtn = document.getElementById("backBtn");
+    const leaveBtn = document.getElementById("leaveBtn");
+    const takeBtn = document.getElementById("takeBtn")
     
     /* ESTADO DEL JUEGO */
     let distance = 0;
@@ -206,8 +228,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let anxiety = 0;
     let anxietyInterval;
     let currentEnemy = null;
+    let pendingItem = null;
+    let canAttack = true;
+    let attackCooldownTimeout = null;
 
-    const items = ["Vendaje 🩹", "Energizante ⚡", "Cuchillo 🔪","Clonazepam 💊"]
+    const weapons = [
+        { name: "Cuchillo", damage: 20, cooldown: 600 },
+        { name: "Makarov", damage: 25, cooldown: 400 },
+        { name: "Escopeta recortada", damage: 50, cooldown: 2000 },
+     ];
+    const items = ["Vendaje", "Energizante", "Clonazepam", "Botiquin"]
     
     const enemies = [
         {
@@ -237,6 +267,18 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
     /* FUNCIONES */
+    function startAttackCooldown(time) {
+    canAttack = false;
+    attackBtn.disabled = true;
+
+    clearTimeout(attackCooldownTimeout);
+    attackCooldownTimeout = setTimeout(() => {
+        if (enemyAlive && gameActive) {
+            canAttack = true;
+            attackBtn.disabled = false;
+        }
+    }, time);
+}
     function getEnemyByDistance(distance) {
   const posibles = enemies.filter(e =>
     distance >= e.minDist && distance <= e.maxDist
@@ -273,35 +315,64 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.background = color;
         setTimeout(() => document.body.style.background = original, 400);
     }
+    function encontrarObjeto() {
+        const isWeapon = Math.random() < 0.25
+        if (isWeapon) {
+            pendingItem = {
+                type: "weapon",
+                data: weapons[Math.floor(Math.random() * weapons.length)]
+            };
+            } else {
+                pendingItem = {
+                    type: "item",
+                    data: items[Math.floor(Math.random() * items.length)]
+                };
+            }
+            abrirDecision();
+            }
 
-    function aplicarItem() {
-        const item = items[Math.floor(Math.random() * items.length)];
+            function aplicarPendingItem() {
+        if (!pendingItem) return;
 
-        if (item === "Vendaje 🩹") {
+        if (pendingItem.type === "weapon") {
+            equippedWeapon = pendingItem.data
+            thinkBox.innerHTML = `<p>Ahora tengo ${equippedWeapon.name}.</p>`
+            flashBackground("#0036B5");
+        } 
+            if (pendingItem.type === "item") {
+                const item = pendingItem.data;
+
+        if (item === "Botiquin") {
+            health = Math.min(health + 30, 100);
+            thinkBox.innerHTML = "<p>Encontre un botiquin, recupere mi salud como se debe, que alivio.</p>"
+            flashBackground("#03B500")
+        } 
+        if (item === "Vendaje") {
             health = Math.min(health + 10, 100);
-            thinkBox.innerHTML = "<p>Encontré un vendaje, por el momento me sirve para resistir un poco mas...</p>";
-            flashBackground("#03B500");
+            thinkBox.innerHTML = "<p>Encontré un vendaje, por el momento me sirve para resistir un poco el dolor...</p>";
+            flashBackground("#649412");
         }
-        if (item === "Energizante ⚡") {
+        if (item === "Energizante") {
             energy = Math.min(energy + 100, 100);
             thinkBox.innerHTML = "<p>Una bebida energizante, esto me da un impulso de energia, mi cuerpo puede avanzar con facilidad.</p>";
             flashBackground("#B5B500");
         }
-
-        if (item === "Cuchillo 🔪") {
-            equippedWeapon = "cuchillo";
-            thinkBox.innerHTML = "<p>Un cuchillo de cocina... Poco eficiente, sin embargo, esto es mejor que ir indefenso y desarmado.</p>";
-            flashBackground("#0036B5");
-        }
-        if (item === "Clonazepam 💊") {
+        if (item === "Clonazepam") {
             anxiety = Math.max(anxiety - 30, 0);
             thinkBox.innerHTML = "<p>Encontré Clonazepam, unas pastillas para la ansiedad, me siento mas relajado momentaneamente.</p>"
             flashBackground("#7F00E0")
         }
-
+        }
         updateUI();
     }
+    function abrirDecision() {
+        const decisionMsg =
+        document.getElementById("decisionMessage")
 
+        decisionMsg.textContent = `¿Tomar ${pendingItem.data.name || pendingItem.data}?`;
+
+        changeScene("decision")
+    }
     function startEnergyRecovery() {
         clearInterval(energyInterval);
         energyInterval = setInterval(() => {
@@ -337,9 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     thinkBox.innerHTML = `
         <h3>Pensamientos...</h3>
 <p>Tengo que llegar a la escuela, aunque tengo un raro presentimiento,
-            como si algo me lo estuviera impidiendo...la escuela queda a 1200 metros desde donde estoy...</p>
-        </div>
-    `;
+            como si algo me lo estuviera impidiendo...la escuela queda a 1200 metros desde donde estoy...</p>`;
 
     advanceBtn.disabled = false;
     attackBtn.disabled = true;
@@ -350,8 +419,20 @@ document.addEventListener('DOMContentLoaded', () => {
     startAnxietyRecovery();
 }
     /* EVENTOS */
+    leaveBtn.addEventListener("click", () => {
+        thinkBox.innerHTML = `<p>Decidio no tomar ${pendingItem.data.name || pendingItem.data}.</p>`;
+        pendingItem = null;
+        changeScene("game")
+    });
+    takeBtn.addEventListener("click", () => {
+        aplicarPendingItem();
+        pendingItem = null;
+        changeScene("game")
+    });
     restartBtn.addEventListener('click', () => {
     resetGame();
+    canAttack = true;
+    clearTimeout(attackCooldownTimeout);
 });
 helpBtn.addEventListener('click', () => {
     changeScene('help');
@@ -382,8 +463,10 @@ backBtn.addEventListener('click', () => {
         }
     }, 1000);
 
-    if (Math.random() < 0.15) {
-        aplicarItem();
+    const ITEM_CHANCE = 0.20;
+
+    if (Math.random() < ITEM_CHANCE) {
+        encontrarObjeto();
         return;
     }
 
@@ -414,9 +497,15 @@ backBtn.addEventListener('click', () => {
 
     attackBtn.addEventListener('click', () => {
         if (!gameActive) return;
+        
+        const weapon = equippedWeapon;
+    const playerDamage = weapon ? weapon.damage : 10;
+    const cooldown = weapon ? weapon.cooldown : 500;
 
-        enemyHealth -= equippedWeapon ? 20 : 10;
+        enemyHealth -= playerDamage;
         health -= currentEnemy.damage;
+
+        startAttackCooldown(cooldown);
 
         if (enemyHealth <= 0) {
             enemyAlive = false;
