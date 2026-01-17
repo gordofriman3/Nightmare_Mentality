@@ -144,17 +144,27 @@ button:disabled {
     text-align: center;
     gap: 25px;
 }
+#jumpframe {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: auto;
+    max-width: 600px;
+    z-index: 9999;
+    pointer-events: none;
+}
 </style>
 </head>
 
 <body>
 
 <div id="menu" class="scene">
-    <p>Alpha 2.0</p>
+    <p>Alpha 2.2.1</p>
     <h1 id="title">Nightmare Mentality</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="helpBtn">Ayuda</button>
-    <a href="https://www.tiktok.com/@el.gordo.friman?_r=1&_t=ZM-9359Tzuvyoe">Presioná acá para apoyar el juego :)</a>
 </div>
 
 <div id="game" class="scene hidden">
@@ -179,21 +189,26 @@ button:disabled {
         </div>
     </div>
 </div>
-<button id="backBtn">Volver</button>
 <div id="help" class="scene hidden">
+    <button id="backBtn">Volver</button>
     <center><h1>¿Como jugar?</h1></center>
     <p>En este juego el protagonista no escapa de monstruos, si no que escapa de su propia mente.
-    acá la mente es su peor enemigo, solo hay una forma de calmar y relajar la mente. para alcanzar esa forma, hay procurar no gastar
+    acá la mente es su peor enemigo, solo hay una forma de calmar y relajar la mente. para alcanzar esa forma, hay que procurar no gastar
     toda sus fuerzas en caminar hacia lo que la mente le impide llegar, su mente utiliza como obstaculo los "monstruos".
     un pico de panico es letal para el protagonista, haciendo que pierda la vida de la forma mas rara.
     para evitarlo, es mejor tomar medidas, ya sea encontrando objetos de defensa o objetos de salud fisica y mental</p>
+    <a href="https://www.tiktok.com/@el.gordo.friman?_r=1&_t=ZM-9359Tzuvyoe">Presioná acá para apoyar el juego :)</a>
 </div>
 <div id="decision" class="scene hidden">
 <h3 id="decisionMessage"></h3>
 <button id="takeBtn">Tomar</button>
 <button id="leaveBtn">Dejar</button>
 </div>
-
+<audio id="punch" src="assets/sounds/punch.mp3"></audio>
+<audio id="knife" src="assets/sounds/knife.mp3"></audio>
+<audio id="makarov" src="assets/sounds/pistolshot.mp3"></audio>
+<audio id="sawedoff" src="assets/sounds/sawedoffshot.mp3"></audio>
+<img id="jumpframe" src="assets/images/jumpscare.jpg" class="hidden">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
@@ -214,6 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById("backBtn");
     const leaveBtn = document.getElementById("leaveBtn");
     const takeBtn = document.getElementById("takeBtn")
+    const sounds = {
+        Cuchillo: document.getElementById("knife"),
+        Makarov: document.getElementById("makarov"),
+        "Escopeta recortada": document.getElementById("sawedoff"),
+        punch: document.getElementById("punch")
+    }
+    const jumpframeImg = document.getElementById("jumpframe");
     
     /* ESTADO DEL JUEGO */
     let distance = 0;
@@ -235,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const weapons = [
         { name: "Cuchillo", damage: 20, cooldown: 600 },
         { name: "Makarov", damage: 25, cooldown: 400 },
-        { name: "Escopeta recortada", damage: 50, cooldown: 2000 },
+        { name: "Escopeta recortada", damage: 50, cooldown: 1000 },
      ];
     const items = ["Vendaje", "Energizante", "Clonazepam", "Botiquin"]
     
@@ -267,6 +289,30 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
     /* FUNCIONES */
+    function jumpframe() {
+        if (anxiety < 70) return;
+
+        if (Math.random() < 0.15) {
+            jumpframeImg.classList.remove("hidden");
+
+            setTimeout(() => {
+                jumpframeImg.classList.add("hidden");
+            }, 80);
+        }
+    }
+    function playAttackSound() {
+        let sound;
+
+        if (equippedWeapon) {
+            sound = sounds[equippedWeapon.name];
+        } else {
+            sound = sounds.punch;
+        }
+        if (!sound) return;
+
+        sound.currentTime = 0;
+        sound.play();
+    }
     function startAttackCooldown(time) {
     canAttack = false;
     attackBtn.disabled = true;
@@ -380,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 energy += 1;
                 updateUI();
             }
-        }, 900);
+        }, 600);
     }
     function startAnxietyRecovery() {
         clearInterval(anxietyInterval);
@@ -463,7 +509,7 @@ backBtn.addEventListener('click', () => {
         }
     }, 1000);
 
-    const ITEM_CHANCE = 0.20;
+    const ITEM_CHANCE = 0.15;
 
     if (Math.random() < ITEM_CHANCE) {
         encontrarObjeto();
@@ -472,6 +518,8 @@ backBtn.addEventListener('click', () => {
 
     distance += 15;
     energy -= 10;
+
+    jumpframe();
 
     const enemy = getEnemyByDistance(distance);
     const enemyChance = getEnemyChance();
@@ -497,6 +545,8 @@ backBtn.addEventListener('click', () => {
 
     attackBtn.addEventListener('click', () => {
         if (!gameActive) return;
+
+        playAttackSound();
         
         const weapon = equippedWeapon;
     const playerDamage = weapon ? weapon.damage : 10;
