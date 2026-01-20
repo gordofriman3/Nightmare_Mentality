@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -51,11 +51,11 @@ body {
 }
 
 #stats {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 5px;
     border: 2px solid red;
-    margin: 10px;
     border-radius: 10px;
     box-shadow: 0 0 10px red;
 }
@@ -146,14 +146,43 @@ button:disabled {
 }
 #jumpframe {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    
     width: 100vw;
-    height: auto;
-    max-width: 600px;
+    height: 100vh;
+
+    object-fit: cover;
+    
     z-index: 9999;
-    pointer-events: none;
+}
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.bar {
+    width: 100%;
+    height: 14px;
+    background: #3D0000;
+    border: 2px solid red;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.bar div {
+    height: 100%;
+    width: 100%;
+    background: red;
+    transition: width 0.3s;
+}
+#healthbar {
+    background: darkred;
+}
+#anxietybar {
+    background: darkmagenta;
+}
+#energybar {
+    background: #C4B000;
 }
 </style>
 </head>
@@ -169,10 +198,31 @@ button:disabled {
 
 <div id="game" class="scene hidden">
     <div id="stats">
-        <h4 id="health">Salud: 100%</h4>
-        <h4 id="anxiety">Ansiedad: 0%</h4>
-        <h4 id="energy">Energía: 100%</h4>
+
+        <div class="stat">
+        <span id="health">Salud</span>
+        <div class="bar">
+            <div class="bar-fill" id="healthbar"></div>
+        </div>
+        </div>
+
+        <div class="stat">
+        <span id="anxiety">Ansiedad</span>
+        <div class="bar">
+            <div class="bar-fill" id="anxietybar"></div>
+        </div>
+        </div>
+
+        <div class="stat">
+        <span id="energy">Energía</span>
+        <div class="bar">
+            <div class="bar-fill" id="energybar"></div>
+            </div>
+        </div>
+
+        <div id="stat">
         <h4 id="distance">Distancia: 0 metros</h4>
+        </div>
     </div>
 
     <div id="bottom">
@@ -191,12 +241,15 @@ button:disabled {
 </div>
 <div id="help" class="scene hidden">
     <button id="backBtn">Volver</button>
-    <center><h1>¿Como jugar?</h1></center>
-    <p>En este juego el protagonista no escapa de monstruos, si no que escapa de su propia mente.
-    acá la mente es su peor enemigo, solo hay una forma de calmar y relajar la mente. para alcanzar esa forma, hay que procurar no gastar
-    toda sus fuerzas en caminar hacia lo que la mente le impide llegar, su mente utiliza como obstaculo los "monstruos".
-    un pico de panico es letal para el protagonista, haciendo que pierda la vida de la forma mas rara.
-    para evitarlo, es mejor tomar medidas, ya sea encontrando objetos de defensa o objetos de salud fisica y mental</p>
+    <center><h1>Bienvenido a Nightmare Mentality</h1></center>
+    <strong>Objetivo:</strong>
+    <p>LLEGAR A LA ESCUELA CON VIDA.</p>
+    <strong>Defensa:</strong>
+    <p>Aca las armas son estrictamente limitadas, procura usarlas cuando no tengas escapatoria.</p>
+    <strong>Salud:</strong>
+    <p>No solamente hay que cuidarse y no recibir daño, si no que tambien hay que mantener nuestra energia
+        estable, consumiendo grandes cantidades de azucar y cafeina. ademas tambien hay que tener en cuenta la salud mental, MUY IMPORTANTE.
+    </p>
     <a href="https://www.tiktok.com/@el.gordo.friman?_r=1&_t=ZM-9359Tzuvyoe">Presioná acá para apoyar el juego :)</a>
 </div>
 <div id="decision" class="scene hidden">
@@ -208,12 +261,26 @@ button:disabled {
 <audio id="knife" src="assets/sounds/knife.mp3"></audio>
 <audio id="makarov" src="assets/sounds/pistolshot.mp3"></audio>
 <audio id="sawedoff" src="assets/sounds/sawedoffshot.mp3"></audio>
+<audio id="bandageput" src="assets/sounds/bandageput.mp3"></audio>
+<audio id="takegun" src="assets/sounds/takegun.mp3"></audio>
+<audio id="pills" src="assets/sounds/pills.mp3"></audio>
+<audio id="opencan" src="assets/sounds/monstercan.mp3"></audio>
+<audio id="medkit" src="assets/sounds/medkitexhale.mp3"></audio>
+
 <img id="jumpframe" src="assets/images/jumpscare.jpg" class="hidden">
+<img id="bandage" src="assets/images/bandage.png" class="hidden">
+<img id="clonazepampills" src="assets/images/clonazepam.png" class="hidden">
+<img id="knifepng" src="assets/images/knife.png" class="hidden">
+<img id="medkitpng" src="assets/images/medkit.png" class="hidden">
+<img id="monster" src="assets/images/monster.png" class="hidden">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
 
     /* ELEMENTOS */
+    const healthBar = document.getElementById("healthbar");
+    const energyBar = document.getElementById("energybar");
+    const anxietyBar = document.getElementById("anxietybar")
     const startBtn = document.getElementById("startBtn");
     const advanceBtn = document.getElementById("advancebtn");
     const attackBtn = document.getElementById("attackbtn");
@@ -230,10 +297,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaveBtn = document.getElementById("leaveBtn");
     const takeBtn = document.getElementById("takeBtn")
     const sounds = {
-        Cuchillo: document.getElementById("knife"),
-        Makarov: document.getElementById("makarov"),
+        "Clonazepam": document.getElementById("pills"),
+        "Vendaje": document.getElementById("bandageput"),
+        "Botiquin": document.getElementById("medkit"),
+        "Monster Energy": document.getElementById("opencan"),
+        "Cuchillo": document.getElementById("knife"),
+        "Makarov PM": document.getElementById("makarov"),
         "Escopeta recortada": document.getElementById("sawedoff"),
-        punch: document.getElementById("punch")
+        punch: document.getElementById("punch"),
+        takeWeapon: document.getElementById("takegun")
     }
     const jumpframeImg = document.getElementById("jumpframe");
     
@@ -256,10 +328,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const weapons = [
         { name: "Cuchillo", damage: 20, cooldown: 600 },
-        { name: "Makarov", damage: 25, cooldown: 400 },
-        { name: "Escopeta recortada", damage: 50, cooldown: 1000 },
+        { name: "Makarov PM", damage: 25, cooldown: 400, ammo: 8 },
+        { name: "Escopeta recortada", damage: 50, cooldown: 1000, ammo: 2 },
      ];
-    const items = ["Vendaje", "Energizante", "Clonazepam", "Botiquin"]
+    const items = ["Vendaje", "Monster Energy", "Clonazepam", "Botiquin"]
     
     const enemies = [
         {
@@ -289,6 +361,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
     /* FUNCIONES */
+    function playItemSound(itemName) {
+    const sound = sounds[itemName];
+    if (!sound) return;
+
+    sound.currentTime = 0;
+    sound.play();
+}
     function jumpframe() {
         if (anxiety < 70) return;
 
@@ -346,10 +425,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUI() {
         distanceText.textContent = `Distancia: ${distance} metros`;
-        energyText.textContent = `Energía: ${energy}%`;
-        healthText.textContent = `Salud: ${health}%`;
-        anxietyText.textContent = `Ansiedad: ${anxiety}%`;
-        
+
+        energyText.textContent = `Energía`;
+        healthText.textContent = `Salud`;
+        anxietyText.textContent = `Ansiedad`;
+
+        healthBar.style.width = health + "%";
+        anxietyBar.style.width = anxiety + "%";
+        energyBar.style.width = energy + "%";
+
             if (health <= 20 && gameActive) {
     document.body.classList.add("low-health");
 } else {
@@ -381,8 +465,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!pendingItem) return;
 
         if (pendingItem.type === "weapon") {
-            equippedWeapon = pendingItem.data
-            thinkBox.innerHTML = `<p>Ahora tengo ${equippedWeapon.name}.</p>`
+            equippedWeapon = { ...pendingItem.data};
+
+            thinkBox.innerHTML = `<p>Ahora tengo ${equippedWeapon.name}.</p>`;
+
+            playItemSound("takeWeapon");
             flashBackground("#0036B5");
         } 
             if (pendingItem.type === "item") {
@@ -391,22 +478,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item === "Botiquin") {
             health = Math.min(health + 30, 100);
             thinkBox.innerHTML = "<p>Encontre un botiquin, recupere mi salud como se debe, que alivio.</p>"
-            flashBackground("#03B500")
+            flashBackground("#03B500");
+            playItemSound("Botiquin");
         } 
         if (item === "Vendaje") {
             health = Math.min(health + 10, 100);
             thinkBox.innerHTML = "<p>Encontré un vendaje, por el momento me sirve para resistir un poco el dolor...</p>";
             flashBackground("#649412");
+            playItemSound("Vendaje");
         }
-        if (item === "Energizante") {
+        if (item === "Monster Energy") {
             energy = Math.min(energy + 100, 100);
-            thinkBox.innerHTML = "<p>Una bebida energizante, esto me da un impulso de energia, mi cuerpo puede avanzar con facilidad.</p>";
+            thinkBox.innerHTML = "<p>Una Monster, esto me da un impulso de energia, mi cuerpo puede avanzar con facilidad.</p>";
             flashBackground("#B5B500");
+            playItemSound("Monster Energy");
         }
         if (item === "Clonazepam") {
             anxiety = Math.max(anxiety - 30, 0);
             thinkBox.innerHTML = "<p>Encontré Clonazepam, unas pastillas para la ansiedad, me siento mas relajado momentaneamente.</p>"
-            flashBackground("#7F00E0")
+            flashBackground("#7F00E0");
+            playItemSound("Clonazepam")
         }
         }
         updateUI();
@@ -509,7 +600,7 @@ backBtn.addEventListener('click', () => {
         }
     }, 1000);
 
-    const ITEM_CHANCE = 0.15;
+    const ITEM_CHANCE = 0.30;
 
     if (Math.random() < ITEM_CHANCE) {
         encontrarObjeto();
@@ -529,12 +620,18 @@ backBtn.addEventListener('click', () => {
         enemyHealth = enemy.hp;
         currentEnemy = enemy;
 
+        canAttack = true;
         attackBtn.disabled = false;
         advanceBtn.disabled = true;
 
         thinkBox.innerHTML = `
             <h3>Peligro</h3>
-            <p>${enemy.name} aparece frente a mí… no puedo avanzar. (Pulsa atacar para defenderte)</p>
+            <p>
+${enemy.name} aparece frente a mí… no puedo avanzar (Pulsa atacar para defenderte)
+${equippedWeapon && equippedWeapon.ammo !== undefined 
+    ? `<br>Munición: ${equippedWeapon.ammo}` 
+    : ""}
+</p>
         `;
     } else {
         thinkBox.innerHTML = "<p>Sigo avanzando entre la oscuridad y la soledad...</p>";
@@ -544,36 +641,54 @@ backBtn.addEventListener('click', () => {
 });
 
     attackBtn.addEventListener('click', () => {
-        if (!gameActive) return;
+    if (!gameActive || !canAttack) return;
 
-        playAttackSound();
-        
-        const weapon = equippedWeapon;
+    playAttackSound();
+
+    const weapon = equippedWeapon;
     const playerDamage = weapon ? weapon.damage : 10;
     const cooldown = weapon ? weapon.cooldown : 500;
 
-        enemyHealth -= playerDamage;
-        health -= currentEnemy.damage;
+    enemyHealth -= playerDamage;
+    health -= currentEnemy.damage;
 
-        startAttackCooldown(cooldown);
+    if (equippedWeapon && equippedWeapon.ammo !== undefined) {
+        equippedWeapon.ammo--;
 
-        if (enemyHealth <= 0) {
-            enemyAlive = false;
-            attackBtn.disabled = true;
-            advanceBtn.disabled = false;
-            thinkBox.innerHTML = "<p>El monstruo ya no se mueve, estoy algo herido, pero puedo seguir.</p>";
+        if (equippedWeapon.ammo > 0) {
+            thinkBox.innerHTML = `<p>${currentEnemy.name} aparece frente a mí… no puedo avanzar, ataco con mi ${equippedWeapon.name}.<br>
+Munición restante: ${equippedWeapon.ammo}</p>`;
+        } else {
+            thinkBox.innerHTML = `
+                <p>
+Mi ${equippedWeapon.name} se quedó sin munición,
+lo voy a tener que abandonar.
+                </p>
+            `;
+            equippedWeapon = null;
         }
+    }
 
-        if (health <= 0) {
-            gameActive = false;
-            thinkBox.innerHTML = `<p>¡Agh! No puedo respirar... (Distancia recorrida en total: ${distance} metros)</p>`;
-            advanceBtn.disabled = true;
-            attackBtn.disabled = true;
-            restartBtn.disabled = false;
-            clearInterval(energyInterval);
-        }
-updateUI();
-    });
+    startAttackCooldown(cooldown);
+
+    if (enemyHealth <= 0) {
+        enemyAlive = false;
+        attackBtn.disabled = true;
+        advanceBtn.disabled = false;
+        thinkBox.innerHTML = "<p>El monstruo ya no se mueve, estoy algo herido, pero puedo seguir.</p>";
+    }
+
+    if (health <= 0) {
+        gameActive = false;
+        thinkBox.innerHTML = `<p>¡Agh! No puedo respirar... (Distancia recorrida: ${distance} metros)</p>`;
+        advanceBtn.disabled = true;
+        attackBtn.disabled = true;
+        restartBtn.disabled = false;
+        clearInterval(energyInterval);
+    }
+
+    updateUI();
+});
 
 });
 </script>
