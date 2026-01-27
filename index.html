@@ -20,7 +20,7 @@ html, body {
 }
 
 body {
-    background: #3D0000;
+    background: #290000;
     color: red; 
     font-family: 'Atkinson Hyperlegible Mono', monospace;
     transition: background 0.3s;
@@ -138,11 +138,16 @@ button:disabled {
 }
 #decision {
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
     gap: 25px;
+    padding: 20px;
+}
+#decisionContent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
 }
 #jumpframe {
     position: fixed;
@@ -165,7 +170,7 @@ button:disabled {
     width: 100%;
     height: 14px;
     background: #3D0000;
-    border: 2px solid red;
+    border: 1px solid red;
     border-radius: 6px;
     overflow: hidden;
 }
@@ -184,13 +189,16 @@ button:disabled {
 #energybar {
     background: #C4B000;
 }
+#itemImage {
+    width: 180px;
+}
 </style>
 </head>
 
 <body>
 
 <div id="menu" class="scene">
-    <p>Alpha 2.6.2</p>
+    <p>Alpha 3.1.0</p>
     <h1 id="title">Nightmare Mentality</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="helpBtn">Ayuda</button>
@@ -253,6 +261,7 @@ button:disabled {
     <a href="https://www.tiktok.com/@el.gordo.friman?_r=1&_t=ZM-9359Tzuvyoe">Presioná acá para apoyar el juego :)</a>
 </div>
 <div id="decision" class="scene hidden">
+<img id="itemImage" class="hidden">
 <h3 id="decisionMessage"></h3>
 <button id="takeBtn">Tomar</button>
 <button id="leaveBtn">Dejar</button>
@@ -262,10 +271,19 @@ button:disabled {
 <audio id="makarov" src="assets/sounds/pistolshot.mp3"></audio>
 <audio id="sawedoff" src="assets/sounds/sawedoffshot.mp3"></audio>
 <audio id="bandageput" src="assets/sounds/bandageput.mp3"></audio>
-<audio id="takegun" src="assets/sounds/takegun.mp3"></audio>
+<audio id="takeammo" src="assets/sounds/ammo.mp3"></audio>
 <audio id="pills" src="assets/sounds/pills.mp3"></audio>
 <audio id="opencan" src="assets/sounds/monstercan.mp3"></audio>
 <audio id="medkit" src="assets/sounds/medkitexhale.mp3"></audio>
+<audio id="buttonclick" src="assets/sounds/button.mp3"></audio>
+<audio id="heartbeat" src="assets/sounds/heartbeat.mp3"></audio>
+<audio id="suspense" src="assets/sounds/suspense.mp3" loop></audio>
+<audio id="moan" src="assets/sounds/moan.mp3"></audio>
+<audio id="whisper" src="assets/sounds/whisper.mp3" loop></audio>
+<audio id="walk" src="assets/sounds/walk.mp3"></audio>
+<audio id="takegun" src="assets/sounds/takegun.mp3"></audio>
+<audio id="takeknife" src="assets/sounds/takeknife.mp3"></audio>
+<audio id="damage" src="assets/sounds/damage.mp3"></audio>
 
 <img id="jumpframe" src="assets/images/jumpscare.jpg" class="hidden">
 <img id="bandage" src="assets/images/bandage.png" class="hidden">
@@ -273,11 +291,16 @@ button:disabled {
 <img id="knifepng" src="assets/images/knife.png" class="hidden">
 <img id="medkitpng" src="assets/images/medkit.png" class="hidden">
 <img id="monster" src="assets/images/monster.png" class="hidden">
+<img id="makarovpm" src="assets/images/makarovpm.png" class="hidden">
+<img id="knife" src="assets/images/knife.png" class="hidden">
+<img id="sawedoff" src="assets/images/sawedoff.png" class="hidden">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
 
     /* ELEMENTOS */
+    const decisionMessage = document.getElementById("decisionMessage");
+    const itemImage = document.getElementById("itemImage");
     const healthBar = document.getElementById("healthbar");
     const energyBar = document.getElementById("energybar");
     const anxietyBar = document.getElementById("anxietybar")
@@ -297,6 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaveBtn = document.getElementById("leaveBtn");
     const takeBtn = document.getElementById("takeBtn")
     const sounds = {
+        "Damage": document.getElementById("damage"),
+        "Walk": document.getElementById("walk"),
+        "Whisper": document.getElementById("whisper"),
+        "Death": document.getElementById("moan"),
+        "Ambience": document.getElementById("suspense"),
+        "lowhealth": document.getElementById("heartbeat"),
+        "Button": document.getElementById("buttonclick"),
         "Clonazepam": document.getElementById("pills"),
         "Vendaje": document.getElementById("bandageput"),
         "Botiquin": document.getElementById("medkit"),
@@ -305,11 +335,23 @@ document.addEventListener('DOMContentLoaded', () => {
         "Makarov PM": document.getElementById("makarov"),
         "Escopeta recortada": document.getElementById("sawedoff"),
         punch: document.getElementById("punch"),
-        takeWeapon: document.getElementById("takegun")
+        takeWeapon: document.getElementById("takegun"),
+        takeAmmo: document.getElementById("takeammo"),
+        takeKnife: document.getElementById("takeknife")
     }
     const jumpframeImg = document.getElementById("jumpframe");
+    const itemImages = {
+    "Vendaje": "bandage.png",
+    "Monster Energy": "monster.png",
+    "Clonazepam": "clonazepam.png",
+    "Botiquin": "medkit.png"
+}; 
     
     /* ESTADO DEL JUEGO */
+    let ammoInventory = {
+        "Makarov PM": 0,
+        "Escopeta recortada": 0
+    };
     let distance = 0;
     let energy = 100;
     let health = 100;
@@ -325,11 +367,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let pendingItem = null;
     let canAttack = true;
     let attackCooldownTimeout = null;
+    let whisperPlaying = false;
 
+    const ammo = [
+        { name: "Cargador", amount: 8, weaponId: "Makarov PM", image: "clip.png", type: "ammo" },
+        { name: "Cartuchos", amount: 2, weaponId: "Escopeta recortada", image: "shells.png", type: "ammo" },
+        ];
     const weapons = [
-        { name: "Cuchillo", damage: 20, cooldown: 600 },
-        { name: "Makarov PM", damage: 25, cooldown: 400, ammo: 8 },
-        { name: "Escopeta recortada", damage: 50, cooldown: 1000, ammo: 2 },
+        { name: "Cuchillo", damage: 20, cooldown: 600, image: "knife.png", usesAmmo: false },
+        { name: "Makarov PM", damage: 25, cooldown: 400, ammo: 8, image: "makarovpm.png", usesAmmo: true },
+        { name: "Escopeta recortada", damage: 50, cooldown: 1000, ammo: 2, image: "sawedoff.png", usesAmmo: true },
      ];
     const items = ["Vendaje", "Monster Energy", "Clonazepam", "Botiquin"]
     
@@ -361,6 +408,34 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
     /* FUNCIONES */
+function triggerEnding() {
+    gameActive = false;
+
+    thinkBox.style.display = "block";
+    thinkBox.innerHTML = `
+        <p>No puedo creer que haya llegado... Con vida.</p>
+        <br>
+        <p>Gracias por jugar :)</p>
+        <br>
+        <p><strong>Desarrollado por:</strong> El Friman</p>
+        <p><strong>Dibujos hechos por:</strong> Lichi the creator</p>
+        <p><strong>PNG hechos por:</strong> Tito Furioso</p>
+    `;
+
+    stopAllSounds();
+    stopScreenShake();
+}
+    function addAmmo(ammoItem) {
+  if (!equippedWeapon) return;
+
+  if (equippedWeapon.id !== ammoItem.weaponId) return;
+
+  equippedWeapon.ammo += ammoItem.amount;
+  equippedWeapon.ammo = Math.min(
+    equippedWeapon.ammo,
+    equippedWeapon.maxAmmo
+  );
+}
     function playItemSound(itemName) {
     const sound = sounds[itemName];
     if (!sound) return;
@@ -392,6 +467,39 @@ document.addEventListener('DOMContentLoaded', () => {
         sound.currentTime = 0;
         sound.play();
     }
+    function ataqueAutomaticoEnemigo() {
+    if (!enemyAlive || !gameActive || !currentEnemy) return;
+    
+    // El enemigo ataca
+    health -= currentEnemy.damage;
+    
+    flashBackground("#570000");
+    if (sounds.Damage) {
+        sounds.Damage.currentTime = 0;
+        sounds.Damage.play();
+    }
+    
+    // Verificar muerte
+    if (health <= 0) {
+        health = 0;
+        gameActive = false;
+        advanceBtn.disabled = true;
+        attackBtn.disabled = true;
+        restartBtn.disabled = false;
+        clearInterval(energyInterval);
+        sounds["Death"].currentTime = 0;
+        sounds["Death"].play();
+    }
+    
+    updateUI();
+    
+    // Programar próximo ataque (si sigue vivo)
+    if (enemyAlive && gameActive && health > 0) {
+        setTimeout(() => {
+            ataqueAutomaticoEnemigo();
+        }, 1000); // Otro ataque en 3 segundos
+    }
+}
     function startAttackCooldown(time) {
     canAttack = false;
     attackBtn.disabled = true;
@@ -418,6 +526,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (anxiety < 70) return 0.20;
     return 0.30;
 }
+function playWhisper() {
+    if (anxiety >= 70 && !whisperPlaying) {
+        sounds["Whisper"].loop = true;
+        sounds["Whisper"].volume = 1.0;
+        sounds["Whisper"].play();
+        whisperPlaying = true;
+    }
+
+    if (anxiety < 70 && whisperPlaying) {
+        sounds["Whisper"].pause();
+        sounds["Whisper"].currentTime = 0;
+        whisperPlaying = false;
+    }
+}
     function changeScene(id) {
         document.querySelectorAll('.scene').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
@@ -434,11 +556,20 @@ document.addEventListener('DOMContentLoaded', () => {
         anxietyBar.style.width = anxiety + "%";
         energyBar.style.width = energy + "%";
 
-            if (health <= 20 && gameActive) {
-    document.body.classList.add("low-health");
-} else {
-    document.body.classList.remove("low-health");
-}
+        playWhisper();
+
+    if (health <= 20 && gameActive) {
+        document.body.classList.add("low-health");
+
+        if (sounds["lowhealth"].paused) {
+            sounds["lowhealth"].currentTime = 0;
+            sounds["lowhealth"].play();
+        }
+    } else {
+        document.body.classList.remove("low-health");
+        sounds["lowhealth"].pause();
+        sounds["lowhealth"].currentTime = 0;
+    }
 }
     function flashBackground(color) {
         const original = document.body.style.background;
@@ -446,70 +577,154 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => document.body.style.background = original, 400);
     }
     function encontrarObjeto() {
-        const isWeapon = Math.random() < 0.25
+        const rand = Math.random();
+        const isWeapon = rand < 0.25; // 25% de chance
+        const isAmmo = rand >= 0.25 && rand < 0.40; // 15% de chance (25 a 40)
+        
         if (isWeapon) {
             pendingItem = {
                 type: "weapon",
                 data: weapons[Math.floor(Math.random() * weapons.length)]
             };
-            } else {
+            } else if (isAmmo) {
+                pendingItem = {
+                    type: "ammo",
+                    data: ammo[Math.floor(Math.random() * ammo.length)]
+                };
+                } else {
                 pendingItem = {
                     type: "item",
                     data: items[Math.floor(Math.random() * items.length)]
                 };
-            }
+                }
             abrirDecision();
             }
 
             function aplicarPendingItem() {
-        if (!pendingItem) return;
+    if (!pendingItem) return;
 
-        if (pendingItem.type === "weapon") {
-            equippedWeapon = { ...pendingItem.data};
+    if (pendingItem.type === "weapon") {
+        equippedWeapon = { ...pendingItem.data };
 
-            thinkBox.innerHTML = `<p>Ahora tengo ${equippedWeapon.name}.</p>`;
+        // SONIDO SEGÚN EL ARMA
+        if (equippedWeapon.name === "Cuchillo") {
+            if (sounds.takeKnife) {
+                sounds.takeKnife.currentTime = 0;
+                sounds.takeKnife.play();
+            }
+        } else {
+            // Sonido para armas de fuego
+            if (sounds.takeWeapon) {
+                sounds.takeWeapon.currentTime = 0;
+                sounds.takeWeapon.play();
+            }
+        }
+        
+        // MUNICIÓN PARA ARMAS DE FUEGO
+        if (equippedWeapon.usesAmmo) {
+            // El arma viene con su carga inicial
+            const cargaInicial = pendingItem.data.ammo || 0;
+            
+            // Verificar si tenemos munición en el inventario
+            const ammoInInventory = ammoInventory[equippedWeapon.name] || 0;
+            
+            if (ammoInInventory > 0) {
+                // Si hay munición en inventario, sumar a la carga inicial
+                equippedWeapon.ammo = cargaInicial + ammoInInventory;
+                ammoInventory[equippedWeapon.name] = 0; // Vaciar inventario
+                thinkBox.innerHTML = `<p>Ahora tengo ${equippedWeapon.name} con ${equippedWeapon.ammo} balas (carga inicial + inventario).</p>`;
+            } else {
+                // Si no hay munición, usar solo la carga inicial
+                equippedWeapon.ammo = cargaInicial;
+                thinkBox.innerHTML = `<p>Ahora tengo ${equippedWeapon.name} con ${equippedWeapon.ammo} balas (carga inicial).</p>`;
+            }
+        } else {
+            // Para el cuchillo (no usa munición)
+            thinkBox.innerHTML = `<p>Ahora tengo un ${equippedWeapon.name}. Podría ser útil en combate cercano.</p>`;
+        }
+        
+        flashBackground("#0036B5");
+    } 
+    else if (pendingItem.type === "ammo") {
+        // Aquí manejamos la munición encontrada
+        const ammoItem = pendingItem.data;
+        
+        // SUMAR AL INVENTARIO (siempre)
+        if (!ammoInventory[ammoItem.weaponId]) {
+            ammoInventory[ammoItem.weaponId] = 0;
+        }
+        ammoInventory[ammoItem.weaponId] += ammoItem.amount;
 
-            playItemSound("takeWeapon");
-            flashBackground("#0036B5");
-        } 
-            if (pendingItem.type === "item") {
-                const item = pendingItem.data;
+        // SONIDO DE MUNICIÓN
+        if (sounds.takeAmmo) {
+            sounds.takeAmmo.currentTime = 0;
+            sounds.takeAmmo.play();
+        }
+        
+        // Verificar si tenemos un arma que use esta munición
+        if (equippedWeapon && equippedWeapon.name === ammoItem.weaponId) {
+            // Si tenemos el arma equipada, sumar directamente
+            equippedWeapon.ammo += ammoItem.amount;
+            thinkBox.innerHTML = `<p>Encontré ${ammoItem.name}. ${equippedWeapon.name}: ${equippedWeapon.ammo} balas.</p>`;
+            flashBackground("#7F7F00");
+        }
+        else {
+            // Si no tenemos el arma, guardar en inventario
+            thinkBox.innerHTML = `<p>Encontré ${ammoItem.name}. Guardado en el inventario (${ammoInventory[ammoItem.weaponId]} disponibles).</p>`;
+            flashBackground("#7F7F00");
+        }
+    }
+    else if (pendingItem.type === "item") {
+        const item = pendingItem.data;
 
         if (item === "Botiquin") {
             health = Math.min(health + 30, 100);
-            thinkBox.innerHTML = "<p>Encontre un botiquin, recupere mi salud como se debe, que alivio.</p>"
+            thinkBox.innerHTML = "<p>Encontré un botiquín, recuperé mi salud como se debe, que alivio.</p>";
             flashBackground("#03B500");
             playItemSound("Botiquin");
         } 
-        if (item === "Vendaje") {
+        else if (item === "Vendaje") {
             health = Math.min(health + 10, 100);
             thinkBox.innerHTML = "<p>Encontré un vendaje, por el momento me sirve para resistir un poco el dolor...</p>";
             flashBackground("#649412");
             playItemSound("Vendaje");
         }
-        if (item === "Monster Energy") {
+        else if (item === "Monster Energy") {
             energy = Math.min(energy + 100, 100);
-            thinkBox.innerHTML = "<p>Una Monster, esto me da un impulso de energia, mi cuerpo puede avanzar con facilidad.</p>";
+            thinkBox.innerHTML = "<p>Una Monster, esto me da un impulso de energía, mi cuerpo puede avanzar con facilidad.</p>";
             flashBackground("#B5B500");
             playItemSound("Monster Energy");
         }
-        if (item === "Clonazepam") {
+        else if (item === "Clonazepam") {
             anxiety = Math.max(anxiety - 30, 0);
-            thinkBox.innerHTML = "<p>Encontré Clonazepam, unas pastillas para la ansiedad, me siento mas relajado momentaneamente.</p>"
+            thinkBox.innerHTML = "<p>Encontré Clonazepam, unas pastillas para la ansiedad, me siento más relajado momentáneamente.</p>";
             flashBackground("#7F00E0");
-            playItemSound("Clonazepam")
+            playItemSound("Clonazepam");
         }
-        }
-        updateUI();
     }
+    
+    updateUI();
+}
     function abrirDecision() {
-        const decisionMsg =
-        document.getElementById("decisionMessage")
+    let nombre;
+    let imageSrc;
 
-        decisionMsg.textContent = `¿Tomar ${pendingItem.data.name || pendingItem.data}?`;
-
-        changeScene("decision")
+        if (pendingItem.type === "weapon") {
+        nombre = pendingItem.data.name;
+        imageSrc = `assets/images/${pendingItem.data.image}`;
+    } else if (pendingItem.type === "ammo") {
+        nombre = pendingItem.data.name;
+        imageSrc = `assets/images/${pendingItem.data.image}`;
+    } else {
+        nombre = pendingItem.data;
+        imageSrc = `assets/images/${itemImages[nombre]}`;
     }
+
+    itemImage.src = imageSrc;
+    itemImage.classList.remove("hidden");
+    decisionMessage.textContent = `¿Tomar ${nombre}?`;
+    changeScene("decision");
+}
     function startEnergyRecovery() {
         clearInterval(energyInterval);
         energyInterval = setInterval(() => {
@@ -526,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 anxiety += 1;
                 updateUI();
             }
-        }, 1000);
+        }, 700);
     }
     function resetGame() {
     // Estado base
@@ -539,6 +754,10 @@ document.addEventListener('DOMContentLoaded', () => {
     equippedWeapon = null;
     advanceCooldown = false;
     anxiety = 0;
+    ammoInventory= {
+        "Makarov PM": 0,
+        "Escopeta recortada": 0
+    };
 
     updateUI();
 
@@ -560,6 +779,8 @@ document.addEventListener('DOMContentLoaded', () => {
         thinkBox.innerHTML = `<p>Decidio no tomar ${pendingItem.data.name || pendingItem.data}.</p>`;
         pendingItem = null;
         changeScene("game")
+        sounds["Button"].currentTime = 0;
+        sounds["Button"].play();
     });
     takeBtn.addEventListener("click", () => {
         aplicarPendingItem();
@@ -570,13 +791,19 @@ document.addEventListener('DOMContentLoaded', () => {
     resetGame();
     canAttack = true;
     clearTimeout(attackCooldownTimeout);
+    sounds["Button"].currentTime = 0;
+    sounds["Button"].play();
 });
 helpBtn.addEventListener('click', () => {
     changeScene('help');
+    sounds["Button"].currentTime = 0;
+    sounds["Button"].play();
     updateUI();
 });
 backBtn.addEventListener('click', () => {
     changeScene('menu');
+    sounds["Button"].currentTime = 0;
+    sounds["Button"].play();
     updateUI();
 })
     startBtn.addEventListener('click', () => {
@@ -584,11 +811,23 @@ backBtn.addEventListener('click', () => {
         updateUI();
         startEnergyRecovery();
         startAnxietyRecovery();
+        sounds["Button"].currentTime = 0;
+        sounds["Button"].play();
+        
+const ambience = sounds["Ambience"];
+
+if (ambience.paused) {
+    ambience.currentTime = 0;
+    ambience.play();
+}
     });
 
     advanceBtn.addEventListener('click', () => {
     if (!gameActive || energy <= 0 || enemyAlive) return;
     if (advanceCooldown) return;
+
+    sounds["Walk"].currentTime = 0;
+    sounds["Walk"].play();
 
     advanceCooldown = true;
     advanceBtn.disabled = true;
@@ -600,15 +839,19 @@ backBtn.addEventListener('click', () => {
         }
     }, 1000);
 
-    const ITEM_CHANCE = 0.15;
+    const ITEM_CHANCE = 0.25;
 
     if (Math.random() < ITEM_CHANCE) {
         encontrarObjeto();
         return;
     }
 
-    distance += 15;
+    distance += 20;
     energy -= 10;
+
+    if (distance >= 1200 && gameActive) {
+        triggerEnding();
+    }
 
     jumpframe();
 
@@ -616,26 +859,35 @@ backBtn.addEventListener('click', () => {
     const enemyChance = getEnemyChance();
 
     if (enemy && Math.random() < enemyChance && Math.random() < enemy.attackChance) {
-        enemyAlive = true;
-        enemyHealth = enemy.hp;
-        currentEnemy = enemy;
+    enemyAlive = true;
+    enemyHealth = enemy.hp;
+    currentEnemy = enemy;
 
-        canAttack = true;
-        attackBtn.disabled = false;
-        advanceBtn.disabled = true;
+    canAttack = true;
+    attackBtn.disabled = false;
+    advanceBtn.disabled = true;
 
-        thinkBox.innerHTML = `
-            <h3>Peligro</h3>
-            <p>
-${enemy.name} aparece frente a mí… no puedo avanzar (Pulsa atacar para defenderte)
-${equippedWeapon && equippedWeapon.ammo !== undefined 
-    ? `<br>Munición: ${equippedWeapon.ammo}` 
-    : ""}
-</p>
-        `;
-    } else {
-        thinkBox.innerHTML = "<p>Sigo avanzando entre la oscuridad y la soledad...</p>";
+    // USAR UNA VARIABLE LOCAL
+    let mensajeHTML = `
+        <h3>Peligro</h3>
+        <p>${enemy.name} aparece frente a mí… no puedo avanzar (Pulsa atacar para defenderte)</p>`;
+
+    if (equippedWeapon && equippedWeapon.usesAmmo) {
+        mensajeHTML += `<br>${equippedWeapon.name}: ${equippedWeapon.ammo} balas`;
     }
+    
+    thinkBox.innerHTML = mensajeHTML;
+    
+    // EL ENEMIGO SIEMPRE ATACARÁ AUTOMÁTICAMENTE, SIN IMPORTAR EL ARMA
+    setTimeout(() => {
+        if (enemyAlive && gameActive && currentEnemy) {
+            ataqueAutomaticoEnemigo();
+        }
+    }, 1000); // Primer ataque en 1 segundo
+    
+} else {
+    thinkBox.innerHTML = "<p>Sigo avanzando entre la oscuridad y la soledad...</p>";
+}
 
     updateUI();
 });
@@ -650,7 +902,6 @@ ${equippedWeapon && equippedWeapon.ammo !== undefined
     const cooldown = weapon ? weapon.cooldown : 500;
 
     enemyHealth -= playerDamage;
-    health -= currentEnemy.damage;
 
     if (equippedWeapon && equippedWeapon.ammo !== undefined) {
         equippedWeapon.ammo--;
@@ -685,8 +936,10 @@ lo voy a tener que abandonar.
         attackBtn.disabled = true;
         restartBtn.disabled = false;
         clearInterval(energyInterval);
+        sounds["Death"].currentTime = 0;
+        sounds["Death"].play();
     }
-
+ 
     updateUI();
 });
 
