@@ -54,7 +54,7 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
-    padding: 5px;
+    padding: 3px;
     border: 2px solid red;
     border-radius: 10px;
     box-shadow: 0 0 10px red;
@@ -96,6 +96,7 @@ button {
     cursor: pointer;
     border-radius: 10px;
     box-shadow: 0px 0px 25px rgba(255, 0, 0, 0.5);
+    font-family: 'Atkinson Hyperlegible Mono', monospace;
 }
 
 button:active {
@@ -192,14 +193,29 @@ button:disabled {
 #itemImage {
     width: 180px;
 }
+#application {
+    background: black;
+    color: white;
+}
+#appButton {
+    background: black;
+    color: white;
+    border: 2px solid white;
+    border-radius: 10px;
+    padding: 20px 60px;
+    font-size: 4vh;
+    margin-top: 75px;
+    margin-left: 600px;
+    box-shadow: none;
+}
 </style>
 </head>
 
 <body>
 
-<div id="menu" class="scene">
-    <p>Alpha 3.1.0</p>
-    <h1 id="title">Nightmare Mentality</h1>
+<div id="menu" class="scene hidden">
+    <p>Alpha 3.3.0</p>
+    <h1 id="title">NIGHTMARE MENTALITY</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="helpBtn">Ayuda</button>
 </div>
@@ -266,6 +282,20 @@ button:disabled {
 <button id="takeBtn">Tomar</button>
 <button id="leaveBtn">Dejar</button>
 </div>
+<div id="application" class="scene">
+<h1>Bienvenido a Nightmare Mentality</h1>
+<p>Antes de empezar a jugar, solicitamos que sigan nuestras cuentas de TikTok,
+    eso ayuda y apoya bastante al proyecto, para que crezca y se siga actualizando. Gracias
+    por leer :)</p>
+    <strong>Creador de el arte:</strong>
+    <a href="https://www.tiktok.com/@1.panchili?_r=1&_t=ZS-93SL3xxOw5c">Click aqui para seguir.</a><br>
+    <strong>Creador de los PNG:</strong>
+    <a href="https://www.tiktok.com/@fzzz.250v16?_r=1&_t=ZS-93SL8eJ695x">Click aqui para seguir.</a><br>
+    <strong>Creador y desarrollador:</strong>
+    <a href="https://www.tiktok.com/@el.gordo.friman?_r=1&_t=ZS-93SL1CojHef">Click aqui para seguir.</a><br>
+    <button id="appButton">Continuar</button>
+</p>
+</div>
 <audio id="punch" src="assets/sounds/punch.mp3"></audio>
 <audio id="knife" src="assets/sounds/knife.mp3"></audio>
 <audio id="makarov" src="assets/sounds/pistolshot.mp3"></audio>
@@ -284,6 +314,7 @@ button:disabled {
 <audio id="takegun" src="assets/sounds/takegun.mp3"></audio>
 <audio id="takeknife" src="assets/sounds/takeknife.mp3"></audio>
 <audio id="damage" src="assets/sounds/damage.mp3"></audio>
+<audio id="menuambience" src="assets/sounds/mainmenu.mp3"></audio>
 
 <img id="jumpframe" src="assets/images/jumpscare.jpg" class="hidden">
 <img id="bandage" src="assets/images/bandage.png" class="hidden">
@@ -299,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
 
     /* ELEMENTOS */
+    const appButton = document.getElementById("appButton");
     const decisionMessage = document.getElementById("decisionMessage");
     const itemImage = document.getElementById("itemImage");
     const healthBar = document.getElementById("healthbar");
@@ -320,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaveBtn = document.getElementById("leaveBtn");
     const takeBtn = document.getElementById("takeBtn")
     const sounds = {
+        "Menu Ambiente": document.getElementById("menuambience"),
         "Damage": document.getElementById("damage"),
         "Walk": document.getElementById("walk"),
         "Whisper": document.getElementById("whisper"),
@@ -775,6 +808,16 @@ function playWhisper() {
     startAnxietyRecovery();
 }
     /* EVENTOS */
+    appButton.addEventListener('click', () => {
+    changeScene('menu');
+    sounds["Button"].currentTime = 0;
+    sounds["Button"].play();
+    updateUI();
+    const menuambience = sounds["Menu Ambiente"];
+
+    menuambience.currentTime = 0;
+    menuambience.play();
+    });
     leaveBtn.addEventListener("click", () => {
         thinkBox.innerHTML = `<p>Decidio no tomar ${pendingItem.data.name || pendingItem.data}.</p>`;
         pendingItem = null;
@@ -805,6 +848,10 @@ backBtn.addEventListener('click', () => {
     sounds["Button"].currentTime = 0;
     sounds["Button"].play();
     updateUI();
+    const menuambience = sounds["Menu Ambiente"];
+
+    menuambience.currentTime = 0;
+    menuambience.play();
 })
     startBtn.addEventListener('click', () => {
         changeScene('game');
