@@ -150,7 +150,7 @@ button:disabled {
     align-items: flex-start;
     gap: 15px;
 }
-#jumpframe {
+#jumpscare, #jumpscare2, #jumpscare3 {
     position: fixed;
     top: 0;
     left: 0;
@@ -214,7 +214,7 @@ button:disabled {
 <body>
 
 <div id="menu" class="scene hidden">
-    <p>Alpha 3.3.0</p>
+    <p>Alpha 3.6.0</p>
     <h1 id="title">NIGHTMARE MENTALITY</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="helpBtn">Ayuda</button>
@@ -315,8 +315,10 @@ button:disabled {
 <audio id="takeknife" src="assets/sounds/takeknife.mp3"></audio>
 <audio id="damage" src="assets/sounds/damage.mp3"></audio>
 <audio id="menuambience" src="assets/sounds/mainmenu.mp3"></audio>
+<audio id="tensebeat" src="assets/sounds/tensebeat.mp3" loop></audio>
+<audio id="JumpscareSound" src="assets/sounds/jumpscare.mp3"></audio>
 
-<img id="jumpframe" src="assets/images/jumpscare.jpg" class="hidden">
+<img id="jumpscare" src="assets/images/jumpscare.jpg" class="hidden">
 <img id="bandage" src="assets/images/bandage.png" class="hidden">
 <img id="clonazepampills" src="assets/images/clonazepam.png" class="hidden">
 <img id="knifepng" src="assets/images/knife.png" class="hidden">
@@ -325,6 +327,8 @@ button:disabled {
 <img id="makarovpm" src="assets/images/makarovpm.png" class="hidden">
 <img id="knife" src="assets/images/knife.png" class="hidden">
 <img id="sawedoff" src="assets/images/sawedoff.png" class="hidden">
+<img id="jumpscare2" src="assets/images/jumpscare2.webp" class="hidden">
+<img id="jumpscare3" src="assets/images/jumpscare3.webp" class="hidden">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
@@ -352,6 +356,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaveBtn = document.getElementById("leaveBtn");
     const takeBtn = document.getElementById("takeBtn")
     const sounds = {
+        "JumpscareSound": document.getElementById("JumpscareSound"),
+        "Tension": document.getElementById("tensebeat"),
         "Menu Ambiente": document.getElementById("menuambience"),
         "Damage": document.getElementById("damage"),
         "Walk": document.getElementById("walk"),
@@ -372,7 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
         takeAmmo: document.getElementById("takeammo"),
         takeKnife: document.getElementById("takeknife")
     }
-    const jumpframeImg = document.getElementById("jumpframe");
     const itemImages = {
     "Vendaje": "bandage.png",
     "Monster Energy": "monster.png",
@@ -385,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "Makarov PM": 0,
         "Escopeta recortada": 0
     };
+    let tensebeatPlaying = false;
     let distance = 0;
     let energy = 100;
     let health = 100;
@@ -395,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let equippedWeapon = null;
     let advanceCooldown = false;
     let anxiety = 0;
+    let anxietyDamageInterval = null;
     let anxietyInterval;
     let currentEnemy = null;
     let pendingItem = null;
@@ -402,6 +409,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let attackCooldownTimeout = null;
     let whisperPlaying = false;
 
+    const jumpscares = [
+        "jumpscare.jpg",
+        "jumpscare2.webp",
+        "jumpscare3.webp"];
+    const jumpframes = [
+        "jumpscare.jpg",
+        "jumpscare2.webp",
+        "jumpscare3.webp"];
     const ammo = [
         { name: "Cargador", amount: 8, weaponId: "Makarov PM", image: "clip.png", type: "ammo" },
         { name: "Cartuchos", amount: 2, weaponId: "Escopeta recortada", image: "shells.png", type: "ammo" },
@@ -441,6 +456,76 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
     /* FUNCIONES */
+    function randomFrom(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+function showImage(imgName, duration) {
+    const imgElement = document.getElementById("jumpscare");
+    imgElement.src = `assets/images/${imgName}`;
+    imgElement.classList.remove("hidden");
+
+    setTimeout(() => {
+        imgElement.classList.add("hidden");
+    }, duration);
+}
+    function tryJumpscare() {
+  // probabilidad base de jumpframe normal
+  if (Math.random() < 0.15) {
+    showjumpframe();
+  }
+
+  // jumpscare completo SOLO con ansiedad alta
+  if (anxiety >= 70 && Math.random() < 0.30) {
+    showjumpscare();
+  }
+}
+    function showjumpframe() {
+  const img = randomFrom(jumpframes);
+  showImage(img, 80); // duración corta
+}
+function showjumpscare() {
+  const img = randomFrom(jumpscares);
+
+  showImage(img, 800); // dura más
+  JumpscareSound.currentTime = 0;
+  JumpscareSound.play();
+
+  health -= 10;
+  if (health < 0) health = 0;
+
+  updateUI();
+}
+    function startMaxAnxietyDamage() {
+    clearInterval(anxietyDamageInterval);
+
+    anxietyDamageInterval = setInterval(() => {
+        if (!gameActive) return;
+
+        if (anxiety >= 90) {
+            health -= 1;
+            if (health < 0) health = 0;
+
+            if (sounds["Damage"]) {
+                sounds["Damage"].currentTime = 0;
+                sounds["Damage"].play();
+            }
+
+            updateUI();
+
+            // muerte por ansiedad
+            if (health <= 0) {
+                gameActive = false;
+                advanceBtn.disabled = true;
+                attackBtn.disabled = true;
+                restartBtn.disabled = false;
+
+                sounds["Death"].currentTime = 0;
+                sounds["Death"].play();
+            }
+        }
+    }, 2000); // cada 3 segundos
+}
 function triggerEnding() {
     gameActive = false;
 
@@ -476,17 +561,6 @@ function triggerEnding() {
     sound.currentTime = 0;
     sound.play();
 }
-    function jumpframe() {
-        if (anxiety < 70) return;
-
-        if (Math.random() < 0.15) {
-            jumpframeImg.classList.remove("hidden");
-
-            setTimeout(() => {
-                jumpframeImg.classList.add("hidden");
-            }, 80);
-        }
-    }
     function playAttackSound() {
         let sound;
 
@@ -560,17 +634,31 @@ function triggerEnding() {
     return 0.30;
 }
 function playWhisper() {
-    if (anxiety >= 70 && !whisperPlaying) {
+    if (anxiety >= 40 && !whisperPlaying) {
         sounds["Whisper"].loop = true;
         sounds["Whisper"].volume = 1.0;
         sounds["Whisper"].play();
         whisperPlaying = true;
     }
 
-    if (anxiety < 70 && whisperPlaying) {
+    if (anxiety < 40 && whisperPlaying) {
         sounds["Whisper"].pause();
         sounds["Whisper"].currentTime = 0;
         whisperPlaying = false;
+    }
+}
+function playTension() {
+    if (anxiety >= 70 && !tensebeatPlaying) {
+        sounds["Tension"].loop = true;
+        sounds["Tension"].volume = 1.0;
+        sounds["Tension"].play();
+        tensebeatPlaying = true;
+    }
+
+    if (anxiety < 70 && tensebeatPlaying) {
+        sounds["Tension"].pause();
+        sounds["Tension"].currentTime = 0;
+        tensebeatPlaying = false;
     }
 }
     function changeScene(id) {
@@ -590,6 +678,7 @@ function playWhisper() {
         energyBar.style.width = energy + "%";
 
         playWhisper();
+        playTension();
 
     if (health <= 20 && gameActive) {
         document.body.classList.add("low-health");
@@ -774,7 +863,7 @@ function playWhisper() {
                 anxiety += 1;
                 updateUI();
             }
-        }, 700);
+        }, 400);
     }
     function resetGame() {
     // Estado base
@@ -806,6 +895,8 @@ function playWhisper() {
     startEnergyRecovery();
     
     startAnxietyRecovery();
+
+    startMaxAnxietyDamage();
 }
     /* EVENTOS */
     appButton.addEventListener('click', () => {
@@ -858,6 +949,7 @@ backBtn.addEventListener('click', () => {
         updateUI();
         startEnergyRecovery();
         startAnxietyRecovery();
+        startMaxAnxietyDamage();
         sounds["Button"].currentTime = 0;
         sounds["Button"].play();
         
@@ -900,7 +992,6 @@ if (ambience.paused) {
         triggerEnding();
     }
 
-    jumpframe();
 
     const enemy = getEnemyByDistance(distance);
     const enemyChance = getEnemyChance();
@@ -935,7 +1026,7 @@ if (ambience.paused) {
 } else {
     thinkBox.innerHTML = "<p>Sigo avanzando entre la oscuridad y la soledad...</p>";
 }
-
+tryJumpscare();
     updateUI();
 });
 
