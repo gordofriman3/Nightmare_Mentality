@@ -219,7 +219,7 @@ position: relative;
     overflow: hidden;
 }
 #combate {
-display: flex;
+    display: flex;
     justify-content: center;
     flex-direction: column;
     align-items: center;
@@ -297,13 +297,45 @@ display: flex;
     align-items: center;
     gap: 10px;
     }
+    #gameover {
+        display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    }
+    #youded {
+        color: red;
+    text-shadow:
+    0 0 5px red,
+    0 0 20px red,
+    0 0 50px red,
+    0 0 100px red,
+    0 0 160px darkred;
+    animation: glitch 0.2s infinite;
+    }
+    #difficultySelect {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    }
+    #combate #attackBtn {
+        position: fixed;
+        bottom: 75px;
+        left: 550px;
+        z-index: 1000;
+    }
+    #arsenal #metalpipe {
+        width: 500px;
+    }
 </style>
 </head>
 
 <body>
 
 <div id="menu" class="scene hidden">
-    <p>Alpha 4.0.0</p>
+    <p>Alpha 4.3.0</p>
     <h1 id="title">NIGHTMARE MENTALITY</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="moreBtn">Mas</button>
@@ -348,7 +380,6 @@ display: flex;
         <div id="buttons">
             <button id="advancebtn">Avanzar</button>
             <button id="defendBtn" disabled>Defenderse</button>
-            <button id="restartbtn" disabled>Reiniciar</button>
         </div>
     </div>
 </div>
@@ -453,6 +484,13 @@ display: flex;
         que al disparar, la dispercion de perdigones sea considerablemente mayor, aumentando su letalidad a corta distancia.
          Se usa comunmente para para cazar animales, como las aves o mamiferos pequeños.
     </p>
+    <div id="imagediv">
+    <img id="metalpipe" src="assets/images/metalpipe.png" class="arsenalimage">
+    </div>
+    <strong>Tubo oxidado:</strong>
+    <p>Un viejo tubo de cañeria de aproximadamente metro y medio de longitud, algo pesada. esta lleno de polvo y oxido, lo cual la hace propensa a 
+        romperse. Un golpe con fuerza con este tubo, es letal debido a su dureza y facilidad de manipular, ademas, debido a su longitud, puede alcanzar facilmente al objetivo a una distancia media.
+    </p>
 </div>
 <div id="modeSelect" class="scene hidden">
     <h1>Selecciona modo de juego.</h1>
@@ -460,6 +498,16 @@ display: flex;
     <small>Modo de juego infinito.</small>
     <button id="campaign" disabled>Campaña</button>
     <small>Modo de juego en desarrollo.</small>
+</div>
+<div id="gameover" class="scene hidden">
+    <h1 id="youded">HAS MUERTO</h1>
+    <button id="restartbtn">Reiniciar</button>
+    <button id="mainMenuBtn">Menu</button>
+</div>
+<div id="difficultySelect" class="scene hidden">
+    <h1>Selecciona dificultad.</h1>
+    <button id="originalBtn">Original</button>
+    <button id="avanzadoBtn">Avanzado</button>
 </div>
 <audio id="punch" src="assets/sounds/punch.mp3"></audio>
 <audio id="knifesound" src="assets/sounds/knife.mp3"></audio>
@@ -472,7 +520,6 @@ display: flex;
 <audio id="medkit" src="assets/sounds/medkitexhale.mp3"></audio>
 <audio id="buttonclick" src="assets/sounds/button.mp3"></audio>
 <audio id="heartbeat" src="assets/sounds/heartbeat.mp3"></audio>
-<audio id="suspense" src="assets/sounds/suspense.mp3" loop></audio>
 <audio id="moan" src="assets/sounds/moan.mp3"></audio>
 <audio id="whisper" src="assets/sounds/whisper.mp3" loop></audio>
 <audio id="walk" src="assets/sounds/walk.mp3"></audio>
@@ -487,6 +534,7 @@ display: flex;
 <audio id="night" src="assets/sounds/night.mp3" loop></audio>
 <audio id="brokenglass" src="assets/sounds/brokenglass.mp3"></audio>
 <audio id="scream" src="assets/sounds/scream.mp3"></audio>
+<audio id="pipeswish" src="assets/sounds/pipeswish.mp3"></audio>
 
 <img id="jumpscare" src="assets/images/jumpscare.jpg" class="hidden">
 <img id="bandage" src="assets/images/bandage.png" class="hidden">
@@ -499,11 +547,14 @@ display: flex;
 <img id="sawedoff" src="assets/images/sawedoff.png" class="hidden">
 <img id="jumpscare2" src="assets/images/jumpscare2.webp" class="hidden">
 <img id="jumpscare3" src="assets/images/jumpscare3.webp" class="hidden">
+<img id="metalpipe" src="assets/images/metalpipe.png" class="hidden">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
 
     /* ELEMENTOS */
+    const advancedBtn = document.getElementById("avanzadoBtn");
+    const originalBtn = document.getElementById("originalBtn");
     const moreBtn = document.getElementById("moreBtn");
     const arsenalBtn = document.getElementById("arsenalBtn");
     const creditsBtn = document.getElementById("creditsBtn");
@@ -543,7 +594,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "Walk": document.getElementById("walk"),
         "Whisper": document.getElementById("whisper"),
         "Death": document.getElementById("moan"),
-        "Ambience": document.getElementById("suspense"),
         "lowhealth": document.getElementById("heartbeat"),
         "Button": document.getElementById("buttonclick"),
         "Clonazepam": document.getElementById("pills"),
@@ -553,6 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "Cuchillo": document.getElementById("knifesound"),
         "Makarov PM": document.getElementById("makarovsound"),
         "Escopeta recortada": document.getElementById("sawedoffsound"),
+        "Tubo oxidado": document.getElementById("pipeswish"),
         punch: document.getElementById("punch"),
         takeWeapon: document.getElementById("takegun"),
         takeAmmo: document.getElementById("takeammo"),
@@ -570,6 +621,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "Makarov PM": 0,
         "Escopeta recortada": 0
     };
+    let enemies = [];
+    let dificultad = "normal";
     let tensebeatPlaying = false;
     let distance = 0;
     let energy = 100;
@@ -606,40 +659,111 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Cartuchos", amount: 2, weaponId: "Escopeta recortada", image: "shells.png", type: "ammo" },
         ];
     const weapons = [
+        { name: "Tubo oxidado", damage: 30, cooldown: 800, image: "metalpipe.png", usesAmmo: false },
         { name: "Cuchillo", damage: 20, cooldown: 600, image: "knife.png", usesAmmo: false },
         { name: "Makarov PM", damage: 25, cooldown: 400, ammo: 8, image: "makarovpm.png", usesAmmo: true },
         { name: "Escopeta recortada", damage: 50, cooldown: 1000, ammo: 2, image: "sawedoff.png", usesAmmo: true },
      ];
     const items = ["Vendaje", "Monster Energy", "Clonazepam", "Botiquin"]
     
-    const enemies = [
-        {
-        name: "La sombra",
-        hp: 100,
-        damage: 10,
-        minDist: 0,
-        maxDist: 1200,
-        attackChance: 1
-        },
-        {
-        name: "El bloqueador",
-        hp: 125,
-        damage: 30,
-        minDist: 800,
-        maxDist: 1200,
-        attackChance: 1
-        },
-        {
-        name: "El acechante",
-        hp: 150,
-        damage: 15,
-        minDist: 400,
-        maxDist: 1200,
-        attackChance: 0.5
-        }
+    function getEnemigosPorDificultad() {
+    if (dificultad === "original") {
+        return [
+            {
+                name: "La sombra",
+                hp: 100,
+                damage: 10,
+                minDist: 0,
+                maxDist: 1200,
+                attackChance: 1
+            },
+            {
+                name: "El bloqueador",
+                hp: 125,
+                damage: 30,
+                minDist: 800,
+                maxDist: 1200,
+                attackChance: 1
+            },
+            {
+                name: "El acechante",
+                hp: 150,
+                damage: 15,
+                minDist: 400,
+                maxDist: 1200,
+                attackChance: 0.5
+            }
         ];
+    } else if (dificultad === "avanzado") {
+        return [
+            {
+                name: "La sombra",
+                hp: 150,  // +50%
+                damage: 15, // +50%
+                minDist: 0,
+                maxDist: 1200,
+                attackChance: 1
+            },
+            {
+                name: "El bloqueador",
+                hp: 188,  // +50%
+                damage: 45, // +50%
+                minDist: 800,
+                maxDist: 1200,
+                attackChance: 1
+            },
+            {
+                name: "El acechante",
+                hp: 225,  // +50%
+                damage: 23, // +50%
+                minDist: 400,
+                maxDist: 1200,
+                attackChance: 0.5
+            }
+        ];
+    }
+}
 
     /* FUNCIONES */
+    function getEnemyByDistance(distance) {
+    const enemigos = getEnemigosPorDificultad();
+    const posibles = enemigos.filter(e =>
+        distance >= e.minDist && distance <= e.maxDist
+    );
+
+    if (posibles.length === 0) return null;
+
+    return posibles[Math.floor(Math.random() * posibles.length)];
+}
+    function iniciarJuego() {
+    changeScene('game');
+    updateUI();
+    startEnergyRecovery();
+    startAnxietyRecovery();
+    startMaxAnxietyDamage();
+    sounds["Button"].currentTime = 0;
+    sounds["Button"].play();
+    
+    const ambience = sounds["Ambience"];
+    const night = sounds["Night"];
+    const moremusic = sounds["MoreMusic"];
+
+    if (ambience.paused) {
+        ambience.volume = 0.5;
+        ambience.currentTime = 0;
+        ambience.play();
+    }
+    if (night.paused) {
+        night.volume = 1.0;
+        night.currentTime = 0;
+        night.play();
+    }
+    if (moremusic.paused) {
+        moremusic.volume = 1.0;
+        moremusic.currentTime = 0;
+        moremusic.play();
+    }
+}
     function tryAmbientSound() {
     if (Math.random() < 0.05) { // 8% de probabilidad
         const sound = randomFrom(ambientScares);
@@ -735,6 +859,7 @@ function showjumpscare() {
             if (sounds["Damage"]) {
                 sounds["Damage"].currentTime = 0;
                 sounds["Damage"].play();
+
             }
 
             updateUI();
@@ -750,7 +875,7 @@ function showjumpscare() {
                 sounds["Death"].currentTime = 0;
                 sounds["Death"].play();
 
-                changeScene('game');
+                changeScene('gameover');
             }
         }
     }, 2000); // cada 3 segundos
@@ -826,7 +951,7 @@ function triggerEnding() {
         clearInterval(energyInterval);
         sounds["Death"].currentTime = 0;
         sounds["Death"].play();
-        changeScene('game');
+        changeScene('gameover');
     }
     
     updateUI();
@@ -849,15 +974,6 @@ function triggerEnding() {
             attackBtn.disabled = false;
         }
     }, time);
-}
-    function getEnemyByDistance(distance) {
-  const posibles = enemies.filter(e =>
-    distance >= e.minDist && distance <= e.maxDist
-  );
-
-  if (posibles.length === 0) return null;
-
-  return posibles[Math.floor(Math.random() * posibles.length)];
 }
     function getEnemyChance() {
     if (anxiety < 40) return 0.10;
@@ -962,7 +1078,12 @@ function playTension() {
         equippedWeapon = { ...pendingItem.data };
 
         // SONIDO SEGÚN EL ARMA
-        if (equippedWeapon.name === "Cuchillo") {
+        if(equippedWeapon.name === "Tubo oxidado") {
+            if (sounds.takeKnife) {
+                sounds.takeKnife.currentTime = 0;
+                sounds.takeKnife.play();
+                }
+            } else if (equippedWeapon.name === "Cuchillo") {
             if (sounds.takeKnife) {
                 sounds.takeKnife.currentTime = 0;
                 sounds.takeKnife.play();
@@ -1133,8 +1254,35 @@ function playTension() {
     startMaxAnxietyDamage();
 }
     /* EVENTOS */
+    document.getElementById('originalBtn').addEventListener('click', () => {
+    dificultad = "normal";
+    sounds["Night"].loop = true;
+        sounds["Night"].volume = 1.0;
+        sounds["Night"].play();
+    iniciarJuego();
+});
+
+document.getElementById('avanzadoBtn').addEventListener('click', () => {
+    dificultad = "avanzado";
+    sounds["Night"].loop = true;
+        sounds["Night"].volume = 1.0;
+        sounds["Night"].play();
+    iniciarJuego();
+});
+   mainMenuBtn.addEventListener('click', () => {
+        resetGame();
+        sounds["Button"].currentTime = 0;
+        sounds["Button"].play();
+        changeScene('menu');
+        updateUI();
+        const menuambience = sounds["Menu Ambiente"];
+
+    menuambience.currentTime = 0;
+    menuambience.play();
+});
     startBtn.addEventListener('click', () => {
         changeScene('modeSelect');
+        
         sounds["Button"].currentTime = 0;
         sounds["Button"].play();
 });
@@ -1218,6 +1366,7 @@ function playTension() {
     clearTimeout(attackCooldownTimeout);
     sounds["Button"].currentTime = 0;
     sounds["Button"].play();
+    changeScene('game');
 });
 helpBtn.addEventListener('click', () => {
     changeScene('help');
@@ -1233,34 +1382,10 @@ backBtn.addEventListener('click', () => {
     const menuambience = sounds["Menu Ambiente"];
 })
     survivalBtn.addEventListener('click', () => {
-        changeScene('game');
-        updateUI();
-        startEnergyRecovery();
-        startAnxietyRecovery();
-        startMaxAnxietyDamage();
-        sounds["Button"].currentTime = 0;
-        sounds["Button"].play();
-        
-const ambience = sounds["Ambience"];
-const night = sounds["Night"];
-const moremusic = sounds["MoreMusic"];
-
-if (ambience.paused) {
-    ambience.volume = 0.5;
-    ambience.currentTime = 0;
-    ambience.play();
-}
-if (night.paused) {
-    night.volume = 1.0;
-    night.currentTime = 0;
-    night.play();
-    }
-    if (moremusic.paused) {
-    moremusic.volume = 1.0;
-    moremusic.currentTime = 0;
-    moremusic.play();
-    }
-    });
+    changeScene('difficultySelect');  // Cambia a selección de dificultad
+    sounds["Button"].currentTime = 0;
+    sounds["Button"].play();
+});
 
     advanceBtn.addEventListener('click', () => {
     if (!gameActive || energy <= 0 || enemyAlive) return;
@@ -1387,15 +1512,11 @@ lo voy a tener que abandonar.
 
     if (health <= 0) {
         gameActive = false;
-        thinkBox.innerHTML = `<p>¡Agh! No puedo respirar... (Distancia recorrida: ${distance} metros)</p>`;
-        advanceBtn.disabled = true;
-        attackBtn.disabled = true;
         restartBtn.disabled = false;
-        defendBtn.disabled = true;
         clearInterval(energyInterval);
         sounds["Death"].currentTime = 0;
         sounds["Death"].play();
-        changeScene('game');
+        changeScene('gameover');
     }
 
     updateUI();
