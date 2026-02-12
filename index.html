@@ -52,8 +52,9 @@ body {
 
 #stats {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 10px;
     padding: 3px;
     border: 2px solid red;
     border-radius: 10px;
@@ -241,7 +242,7 @@ position: relative;
     width: 20px;
     top: 0px;
     left: 0px;
-    animation: moveCursor 2s linear infinite;
+    animation: moveCursor 1.5s linear infinite;
 }
 @keyframes moveCursor {
     0%   { left: 0px}
@@ -329,13 +330,65 @@ position: relative;
     #arsenal #metalpipe {
         width: 500px;
     }
+    #playerPortrait {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    justify-self: center;
+    align-self: center;
+
+    width: 120px;
+    height: 120px;
+    border: 2px solid red;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px red;
+}
+
+#playerPortrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+#healthStat {
+    grid-column: 1;
+    grid-row: 1;
+}
+#energyStat {
+    grid-column: 1;
+    grid-row: 2;
+}
+#anxietyStat {
+    grid-column: 3;
+    grid-row: 1;
+}
+#distanceStat {
+    grid-column: 3;
+    grid-row: 2;
+}
+#combatHUDBox {
+    border: 2px solid red;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 10px red;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 200px;
+}
+
+#combatWeaponImage img {
+    width: 120px;
+}
 </style>
 </head>
 
 <body>
 
 <div id="menu" class="scene hidden">
-    <p>Alpha 4.3.0</p>
+    <p>Beta 4.5.0</p>
     <h1 id="title">NIGHTMARE MENTALITY</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="moreBtn">Mas</button>
@@ -344,28 +397,32 @@ position: relative;
 <div id="game" class="scene hidden">
     <div id="stats">
 
-        <div class="stat">
+        <div id="healthStat" class="stat">
         <span id="health">Tu salud</span>
         <div class="bar">
             <div class="bar-fill healthbar"></div>
         </div>
         </div>
 
-        <div class="stat">
+        <div id="anxietyStat" class="stat">
         <span id="anxiety">Ansiedad</span>
         <div class="bar">
             <div class="bar-fill" id="anxietybar"></div>
         </div>
         </div>
 
-        <div class="stat">
+        <div id="playerPortrait">
+            <img src="assets/images/prota.png" id="playerImage">
+        </div>
+
+        <div id="energyStat" class="stat">
         <span id="energy">Energía</span>
         <div class="bar">
             <div class="bar-fill" id="energybar"></div>
             </div>
         </div>
 
-        <div id="stat">
+        <div id="distanceStat"  class="stat">
         <h4 id="distance">Distancia: 0 metros</h4>
         </div>
     </div>
@@ -422,12 +479,15 @@ position: relative;
         <div id="cursor"></div>
         </div>
         <button id="attackBtn">Atacar</button>
+        <div id="combatHUDBox">
         <div class="stat">
         <span id="health">Tu salud</span>
         <div class="bar">
             <div class="bar-fill healthbar"></div>
         </div>
-        <div id="combatHUD" class="stat">
+            <div id="combatWeaponImage">
+            <img id="combatWeaponImg">
+            </div>
                 <span id="combatAmmo"></span>
             </div>
         </div>
@@ -507,7 +567,9 @@ position: relative;
 <div id="difficultySelect" class="scene hidden">
     <h1>Selecciona dificultad.</h1>
     <button id="originalBtn">Original</button>
+    <small>Dificultad con estadisticas equilibradas.</small>
     <button id="avanzadoBtn">Avanzado</button>
+    <small>Recomendado para mejor experiencia y intensidad.</small>
 </div>
 <audio id="punch" src="assets/sounds/punch.mp3"></audio>
 <audio id="knifesound" src="assets/sounds/knife.mp3"></audio>
@@ -536,7 +598,7 @@ position: relative;
 <audio id="scream" src="assets/sounds/scream.mp3"></audio>
 <audio id="pipeswish" src="assets/sounds/pipeswish.mp3"></audio>
 
-<img id="jumpscare" src="assets/images/jumpscare.jpg" class="hidden">
+<img id="jumpscare" src="assets/images/jumpscare.jpg" class="hidden"> 
 <img id="bandage" src="assets/images/bandage.png" class="hidden">
 <img id="clonazepampills" src="assets/images/clonazepam.png" class="hidden">
 <img id="knifepng" src="assets/images/knife.png" class="hidden">
@@ -548,6 +610,9 @@ position: relative;
 <img id="jumpscare2" src="assets/images/jumpscare2.webp" class="hidden">
 <img id="jumpscare3" src="assets/images/jumpscare3.webp" class="hidden">
 <img id="metalpipe" src="assets/images/metalpipe.png" class="hidden">
+<img id="prota" src="assets/images/prota.png" class="hidden">
+<img id="prota1" src="assets/images/prota1.png" class="hidden">
+<img id="prota2" src="assets/images/prota2.png" class="hidden">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
@@ -621,8 +686,10 @@ document.addEventListener('DOMContentLoaded', () => {
         "Makarov PM": 0,
         "Escopeta recortada": 0
     };
+    let distanceInterval = null;
+    let enemyDistance = 3;
     let enemies = [];
-    let dificultad = "normal";
+    let dificultad = "original";
     let tensebeatPlaying = false;
     let distance = 0;
     let energy = 100;
@@ -659,10 +726,10 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Cartuchos", amount: 2, weaponId: "Escopeta recortada", image: "shells.png", type: "ammo" },
         ];
     const weapons = [
-        { name: "Tubo oxidado", damage: 30, cooldown: 800, image: "metalpipe.png", usesAmmo: false },
-        { name: "Cuchillo", damage: 20, cooldown: 600, image: "knife.png", usesAmmo: false },
-        { name: "Makarov PM", damage: 25, cooldown: 400, ammo: 8, image: "makarovpm.png", usesAmmo: true },
-        { name: "Escopeta recortada", damage: 50, cooldown: 1000, ammo: 2, image: "sawedoff.png", usesAmmo: true },
+        { name: "Tubo oxidado", damage: 30, cooldown: 800, image: "metalpipe.png", usesAmmo: false, attackDistance: [1, 2] },
+        { name: "Cuchillo", damage: 20, cooldown: 600, image: "knife.png", usesAmmo: false, attackDistance: 1 },
+        { name: "Makarov PM", damage: 25, cooldown: 400, ammo: 8, image: "makarovpm.png", usesAmmo: true, attackDistance: [1, 2, 3] },
+        { name: "Escopeta recortada", damage: 50, cooldown: 1000, ammo: 2, image: "sawedoff.png", usesAmmo: true, attackDistance: [1, 2] },
      ];
     const items = ["Vendaje", "Monster Energy", "Clonazepam", "Botiquin"]
     
@@ -698,24 +765,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return [
             {
                 name: "La sombra",
-                hp: 150,  // +50%
-                damage: 15, // +50%
+                hp: 150,
+                damage: 15,
                 minDist: 0,
                 maxDist: 1200,
                 attackChance: 1
             },
             {
                 name: "El bloqueador",
-                hp: 188,  // +50%
-                damage: 45, // +50%
+                hp: 188,
+                damage: 45,
                 minDist: 800,
                 maxDist: 1200,
                 attackChance: 1
             },
             {
                 name: "El acechante",
-                hp: 225,  // +50%
-                damage: 23, // +50%
+                hp: 225,
+                damage: 23,
                 minDist: 400,
                 maxDist: 1200,
                 attackChance: 0.5
@@ -725,6 +792,35 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
     /* FUNCIONES */
+    function updatePlayerPortrait() {
+    const img = document.getElementById("playerImage");
+
+    if (health > 70) {
+        img.src = "assets/images/prota.png";
+    } else if (health > 50) {
+        img.src = "assets/images/prota1.png";
+    } else if (health > 20) {
+        img.src = "assets/images/prota2.png";
+    }
+}
+    function updateCombatHUD() {
+    const ammoText = document.getElementById("combatAmmo");
+    const weaponImg = document.getElementById("combatWeaponImg");
+
+    if (equippedWeapon) {
+        weaponImg.src = `assets/images/${equippedWeapon.image}`;
+        weaponImg.style.display = "block";
+
+        if (equippedWeapon.usesAmmo) {
+            ammoText.textContent = `Munición: ${equippedWeapon.ammo}`;
+        } else {
+            ammoText.textContent = "Arma cuerpo a cuerpo";
+        }
+    } else {
+        ammoText.textContent = "Sin arma";
+        weaponImg.style.display = "none";
+    }
+}
     function getEnemyByDistance(distance) {
     const enemigos = getEnemigosPorDificultad();
     const posibles = enemigos.filter(e =>
@@ -744,15 +840,9 @@ document.addEventListener('DOMContentLoaded', () => {
     sounds["Button"].currentTime = 0;
     sounds["Button"].play();
     
-    const ambience = sounds["Ambience"];
     const night = sounds["Night"];
     const moremusic = sounds["MoreMusic"];
 
-    if (ambience.paused) {
-        ambience.volume = 0.5;
-        ambience.currentTime = 0;
-        ambience.play();
-    }
     if (night.paused) {
         night.volume = 1.0;
         night.currentTime = 0;
@@ -844,6 +934,7 @@ function showjumpscare() {
   health -= 10;
   if (health < 0) health = 0;
 
+updatePlayerPortrait();
   updateUI();
 }
     function startMaxAnxietyDamage() {
@@ -855,6 +946,8 @@ function showjumpscare() {
         if (anxiety >= 90) {
             health -= 1;
             if (health < 0) health = 0;
+
+            updatePlayerPortrait();
 
             if (sounds["Damage"]) {
                 sounds["Damage"].currentTime = 0;
@@ -879,23 +972,6 @@ function showjumpscare() {
             }
         }
     }, 2000); // cada 3 segundos
-}
-function triggerEnding() {
-    gameActive = false;
-
-    thinkBox.style.display = "block";
-    thinkBox.innerHTML = `
-        <p>No puedo creer que haya llegado... Con vida.</p>
-        <br>
-        <p>Gracias por jugar :)</p>
-        <br>
-        <p><strong>Desarrollado por:</strong> El Friman</p>
-        <p><strong>Dibujos hechos por:</strong> Lichi the creator</p>
-        <p><strong>PNG hechos por:</strong> Tito Furioso</p>
-    `;
-
-    stopAllSounds();
-    stopScreenShake();
 }
     function addAmmo(ammoItem) {
   if (!equippedWeapon) return;
@@ -938,6 +1014,8 @@ function triggerEnding() {
     if (sounds.Damage) {
         sounds.Damage.currentTime = 0;
         sounds.Damage.play();
+
+        updatePlayerPortrait();
     }
     
     // Verificar muerte
@@ -1155,12 +1233,14 @@ function playTension() {
 
         if (item === "Botiquin") {
             health = Math.min(health + 30, 100);
+            updatePlayerPortrait();
             thinkBox.innerHTML = "<p>Encontré un botiquín, recuperé mi salud como se debe, que alivio.</p>";
             flashBackground("#03B500");
             playItemSound("Botiquin");
         } 
         else if (item === "Vendaje") {
             health = Math.min(health + 10, 100);
+            updatePlayerPortrait();
             thinkBox.innerHTML = "<p>Encontré un vendaje, por el momento me sirve para resistir un poco el dolor...</p>";
             flashBackground("#649412");
             playItemSound("Vendaje");
@@ -1255,7 +1335,9 @@ function playTension() {
 }
     /* EVENTOS */
     document.getElementById('originalBtn').addEventListener('click', () => {
-    dificultad = "normal";
+    dificultad = "original";
+    document.getElementById("cursor").style.animationDuration = "2s";
+    iniciarJuego();
     sounds["Night"].loop = true;
         sounds["Night"].volume = 1.0;
         sounds["Night"].play();
@@ -1264,6 +1346,8 @@ function playTension() {
 
 document.getElementById('avanzadoBtn').addEventListener('click', () => {
     dificultad = "avanzado";
+    document.getElementById("cursor").style.animationDuration = "1.5s";
+    iniciarJuego();
     sounds["Night"].loop = true;
         sounds["Night"].volume = 1.0;
         sounds["Night"].play();
@@ -1271,6 +1355,7 @@ document.getElementById('avanzadoBtn').addEventListener('click', () => {
 });
    mainMenuBtn.addEventListener('click', () => {
         resetGame();
+        updatePlayerPortrait();
         sounds["Button"].currentTime = 0;
         sounds["Button"].play();
         changeScene('menu');
@@ -1318,11 +1403,12 @@ document.getElementById('avanzadoBtn').addEventListener('click', () => {
         changeScene('more');
         sounds["Button"].currentTime = 0;
         sounds["Button"].play();
-
+ 
     moremusic.play();
         });
     defendBtn.addEventListener('click', () => {
         changeScene('combate');
+        updateCombatHUD();
 
         sounds["Button"].currentTime = 0;
         sounds["Button"].play();
@@ -1333,7 +1419,11 @@ document.getElementById('avanzadoBtn').addEventListener('click', () => {
         setTimeout(() => {
             randomizarZona();
         }, 50);
-
+ setInterval(() => {
+    if (enemyAlive && enemyDistance > 1) {
+        enemyDistance--;
+    }
+}, 3000);
         updateCombatAmmo()
         updateUI();
     });
@@ -1355,12 +1445,15 @@ document.getElementById('avanzadoBtn').addEventListener('click', () => {
         sounds["Button"].play();
     });
     takeBtn.addEventListener("click", () => {
+        updateCombatHUD();
         aplicarPendingItem();
         pendingItem = null;
         changeScene("game")
     });
     restartBtn.addEventListener('click', () => {
+        updateCombatHUD();
     resetGame();
+    updatePlayerPortrait();
     canAttack = true;
     canDefend = true;
     clearTimeout(attackCooldownTimeout);
@@ -1417,7 +1510,6 @@ backBtn.addEventListener('click', () => {
     if (distance >= 1200 && gameActive) {
         triggerEnding();
     }
-
 
     const enemy = getEnemyByDistance(distance);
     const enemyChance = getEnemyChance();
