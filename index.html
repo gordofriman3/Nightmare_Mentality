@@ -382,16 +382,38 @@ position: relative;
 #combatWeaponImage img {
     width: 120px;
 }
+#gameoverstats {
+    border: 2px solid red;
+    border-radius: 10px;
+    box-shadow: 0 0 10px red;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    width: 250px;
+}
+#fixColorBtn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+
+    font-size: 16px;
+    padding: 8px 15px;
+
+    box-shadow: 0 0 10px rgba(255,0,0,0.5);
+}
 </style>
 </head>
 
 <body>
 
 <div id="menu" class="scene hidden">
-    <p>Beta 4.5.0</p>
+    <small>HTML version</small>
+    <p>Release 5.0.0</p>
     <h1 id="title">NIGHTMARE MENTALITY</h1>
     <button id="startBtn">Empezar pesadilla</button>
     <button id="moreBtn">Mas</button>
+    <button id="fixColorBtn">Corregir color</button>
 </div>
 
 <div id="game" class="scene hidden">
@@ -430,8 +452,7 @@ position: relative;
     <div id="bottom">
         <div id="think">
             <h3>Pensamientos...</h3>
-            <p>Tengo que llegar a la escuela, aunque tengo un raro presentimiento,
-            como si algo me lo estuviera impidiendo...voy a tratar de resistir el mayor tiempo posible.</p>
+            <p></p>
         </div>
 
         <div id="buttons">
@@ -446,12 +467,11 @@ position: relative;
     <strong>Objetivo:</strong>
     <p>LLEGAR A LA ESCUELA CON VIDA.</p>
     <strong>Defensa:</strong>
-    <p>Aca las armas son estrictamente limitadas, procura usarlas cuando no tengas escapatoria.</p>
+    <p>Para atacar, presiona "Defenderse" cuando aparesca un enemigo, presiona atacar en la zona verde para no recibir daño.</p>
     <strong>Salud:</strong>
-    <p>No solamente hay que cuidarse y no recibir daño, si no que tambien hay que mantener nuestra energia
-        estable, consumiendo grandes cantidades de azucar y cafeina. ademas tambien hay que tener en cuenta la salud mental, MUY IMPORTANTE.
+    <p>No solamente hay que cuidarse y no recibir daño, tambien hay que mantener nuestra energia
+        estable, consumiendo grandes cantidades de azucar y cafeina, ademas hay que tener en cuenta la salud mental, MUY IMPORTANTE.
     </p>
-    <a href="https://www.tiktok.com/@el.gordo.friman?_r=1&_t=ZM-9359Tzuvyoe">Presioná acá para apoyar el juego :)</a>
 </div>
 <div id="decision" class="scene hidden">
 <img id="itemImage" class="hidden">
@@ -461,8 +481,12 @@ position: relative;
 </div>
 <div id="application" class="scene">
 <h1>Bienvenido a Nightmare Mentality</h1>
+<strong>Prioridad:</strong>
+<p>Esta version de Nightmare Mentality se encuentra sin recibir actualizaciones, debido a el desarrollo de el remake 3D de el msimo. Si deseas recibir noticias
+    y estar al tanto de el desarrollo, recomendamos que te unas a nuestro server de Discord.</p>
+    <a href="https://discord.gg/3fVZsyHw66">https://discord.gg/3fVZsyHw66</a>
 <p>Antes de empezar a jugar, solicitamos que sigan nuestras cuentas de TikTok,
-    eso ayuda y apoya bastante al proyecto, para que crezca y se siga actualizando. Gracias
+    eso ayuda y apoya bastante al proyecto, para que el remake continue creciendo. Gracias
     por leer</p>
     <strong>Creador de el arte:</strong>
     <a href="https://www.tiktok.com/@1.panchili?_r=1&_t=ZS-93SL3xxOw5c">Click aqui para seguir.</a><br>
@@ -499,6 +523,7 @@ position: relative;
 <button id="menuBtn">Menu</button>
 </div>
 <div id="credits" class="scene hidden">
+    <strong>MindDecay Studio formado por:</strong>
     <strong>Creador de el arte:</strong>
     <a href="https://www.tiktok.com/@1.panchili?_r=1&_t=ZS-93SL3xxOw5c">Click aqui para seguir.</a><br>
     <strong>Creador de los PNG:</strong>
@@ -556,13 +581,16 @@ position: relative;
     <h1>Selecciona modo de juego.</h1>
     <button id="survivalBtn">Supervivencia</button>
     <small>Modo de juego infinito.</small>
-    <button id="campaign" disabled>Campaña</button>
-    <small>Modo de juego en desarrollo.</small>
+    <button id="campaignBtn">Campaña</button>
+    <small>Modo historia de el juego.</small>
 </div>
 <div id="gameover" class="scene hidden">
-    <h1 id="youded">HAS MUERTO</h1>
-    <button id="restartbtn">Reiniciar</button>
+    <h1 id="youded">ESTAS MUERTO</h1>
     <button id="mainMenuBtn">Menu</button>
+    <div id="gameoverstats">
+        <p id="traveleddist"></p>
+        <p id="kills"></p>
+    </div>
 </div>
 <div id="difficultySelect" class="scene hidden">
     <h1>Selecciona dificultad.</h1>
@@ -571,6 +599,11 @@ position: relative;
     <button id="avanzadoBtn">Avanzado</button>
     <small>Recomendado para mejor experiencia y intensidad.</small>
 </div>
+<audio id="school" src="assets/sounds/school.mp3" loop></audio>
+<audio id="distortedcity" src="assets/sounds/distortedcity.mp3" loop></audio>
+<audio id="wetpassage" src="assets/sounds/wetpassage.mp3" loop></audio>
+<audio id="sewer" src="assets/sounds/sewer.mp3" loop></audio>
+<audio id="forest" src="assets/sounds/forest.mp3" loop></audio>
 <audio id="punch" src="assets/sounds/punch.mp3"></audio>
 <audio id="knifesound" src="assets/sounds/knife.mp3"></audio>
 <audio id="makarovsound" src="assets/sounds/pistolshot.mp3"></audio>
@@ -597,6 +630,7 @@ position: relative;
 <audio id="brokenglass" src="assets/sounds/brokenglass.mp3"></audio>
 <audio id="scream" src="assets/sounds/scream.mp3"></audio>
 <audio id="pipeswish" src="assets/sounds/pipeswish.mp3"></audio>
+<audio id="JumpscareSound2" src="assets/sounds/jumpscare1.mp3"></audio>
 
 <img id="jumpscare" src="assets/images/jumpscare.jpg" class="hidden"> 
 <img id="bandage" src="assets/images/bandage.png" class="hidden">
@@ -604,6 +638,8 @@ position: relative;
 <img id="knifepng" src="assets/images/knife.png" class="hidden">
 <img id="medkitpng" src="assets/images/medkit.png" class="hidden">
 <img id="monster" src="assets/images/monster.png" class="hidden">
+<img id="jumpscare4" src="assets/images/jumpscare5.jpg" class="hidden">
+<img id="jumpscare5" src="assets/images/jumpscare4.jpg" class="hidden">
 <img id="makarovpm" src="assets/images/makarovpm.png" class="hidden">
 <img id="knife" src="assets/images/knife.png" class="hidden">
 <img id="sawedoff" src="assets/images/sawedoff.png" class="hidden">
@@ -613,11 +649,15 @@ position: relative;
 <img id="prota" src="assets/images/prota.png" class="hidden">
 <img id="prota1" src="assets/images/prota1.png" class="hidden">
 <img id="prota2" src="assets/images/prota2.png" class="hidden">
+<img id="prota3" src="assets/images/prota3.png" class="hidden">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     console.log("JS CARGADO");
 
     /* ELEMENTOS */
+    const fixColorBtn = document.getElementById("fixColorBtn");
+    const campaignBtn = document.getElementById("campaignBtn");
+    const survivalBtn = document.getElementById("survivalBtn");
     const advancedBtn = document.getElementById("avanzadoBtn");
     const originalBtn = document.getElementById("originalBtn");
     const moreBtn = document.getElementById("moreBtn");
@@ -640,13 +680,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const thinkBox = document.getElementById("think");
     const menuScene = document.getElementById("menu");
     const gameScene = document.getElementById("game");
-    const restartBtn = document.getElementById("restartbtn")
     const anxietyText = document.getElementById("anxiety");
     const helpBtn = document.getElementById("helpBtn");
     const backBtn = document.getElementById("backBtn");
     const leaveBtn = document.getElementById("leaveBtn");
     const takeBtn = document.getElementById("takeBtn")
     const sounds = {
+        "School": document.getElementById("school"),
+        "Night2": document.getElementById("night"),
+        "Distorted City": document.getElementById("distortedcity"),
+        "Wet Passage": document.getElementById("wetpassage"),
+        "Sewer": document.getElementById("sewer"),
+        "Forest": document.getElementById("forest"),
+        "JumpscareSound2": document.getElementById("JumpscareSound2"),
         "Scream": document.getElementById("scream"),
         "BrokenGlass": document.getElementById("brokenglass"),
         "Night": document.getElementById("night"),
@@ -686,10 +732,13 @@ document.addEventListener('DOMContentLoaded', () => {
         "Makarov PM": 0,
         "Escopeta recortada": 0
     };
+    let enemiesDefeated = 0;
+    let currentAmbience = null;
+    let gameMode = null;
     let distanceInterval = null;
     let enemyDistance = 3;
     let enemies = [];
-    let dificultad = "original";
+    let dificultad = null;
     let tensebeatPlaying = false;
     let distance = 0;
     let energy = 100;
@@ -708,19 +757,92 @@ document.addEventListener('DOMContentLoaded', () => {
     let canAttack = true;
     let attackCooldownTimeout = null;
     let whisperPlaying = false;
+    let triggeredDialogues = new Set();
+    let lastDialogueTime = 0;
+    const dialogueCooldown = 3500; // 3.5 segundos
 
     const ambientScares = [
         sounds["BrokenGlass"],
         sounds["Scream"],
     ]
+    const ambiences = [
+        { name: "Night",
+          src: "sounds/night.mp3",
+          start: 0,
+          end: 600,
+         },
+         { name: "Sewer",
+          src: "sounds/sewer.mp3",
+          start: 600,
+          end: 1000,
+         },
+         { name: "Forest",
+          src: "sounds/forest.mp3",
+          start: 1000,
+          end: 1440,
+         },
+         { name: "Wet Passage",
+          src: "sounds/wetpassage.mp3",
+          start: 1440,
+          end: 1800,
+         },
+         { name: "Night2",
+          src: "sounds/night.mp3",
+          start: 1800,
+          end: 2400,
+         },
+         { name: "Distorted City",
+          src: "sounds/distortedcity.mp3",
+          start: 2400,
+          end: 2700,
+         },
+         { name: "School",
+          src: "sounds/school.mp3",
+          start: 2700,
+          end: 3000,
+         },
+    ];
+    const dialogues = [
+        { content: "Tengo que llegar a la escuela, me duele mucho la cabeza, ademas, siento un raro presentimiento.", distance: 0 },
+        { content: "Creo que no estoy seguro de lo que estoy haciendo.", distance: 60 },
+        { content: "Sera mejor que me apure, antes de que todo empeore.", distance: 300 },
+        { content: "¿Uh? hay un alcantarillado, voy a tener que entrar, no hay otro camino.", distance: 600 },
+        { content: "Mierda... hay un terrible olor.", distance: 620 },
+        { content: "Parece que hasta aqui llega el alcantarillado.", distance: 1000 },
+        { content: "Un bosque, esta oscuro... esto no puede estar peor.", distance: 1020 },
+        { content: "Hay una cerca metalica, me pregunto a donde me va a llevar.", distance: 1200 },
+        { content: "Esto es un pequeño barrio, esta abandonado, no recuerdo haberlo visto asi.", distance: 1220 },
+        { content: "Esta es la ultima casa, voy a entrar.", distance: 1440 },
+        { content: "Acabo de entrar a un pasadizo, no tengo ni idea a donde me lleva.", distance: 1500 },
+        { content: "Encontre la puerta de salida.", distance: 1780 },
+        { content: "Esto parece ser el otro lado de la ciudad que no pude acceder.", distance: 1800 },
+        { content: "Quiero creer que ahora si voy a poder llegar a  la escuela.", distance: 1820 },
+        { content: "Esta es la entrada a una cancha de futbol.", distance: 2300 },
+        { content: "¿Que mierda? hay una montaña de cadaveres, el olor es terrible.", distance: 2360 },
+        { content: "¿Los cuerpos se estan fusionando? ¿Hasta cuando van a continuar estas alusinaciones?.", distance: 2380 },
+        { content: "Una gran masa de carne... Me siento muy mareado.", distance: 2400 },
+        { content: "Creo que me desmaye despues de mirar esa porqueria, Estoy en un lugar extraño.", distance: 2420 },
+        { content: "El cielo se volvio rojo sangre, necesito que todo esto pare, porfavor.", distance: 2440 },
+        { content: "Porfin, llegue a la escuela, voy a entrar y se supone que todo va a terminar.", distance: 2700 },
+        { content: "En la pared hay algo escrito con sangre, me esta pidiendo que vaya al tejado.", distance: 2840 },
+        { content: "¿Que mierda es esto?...", distance: 2980 },
+        { content: "Llegaste hasta el final... pero esto recien empieza.", distance: 3000 },
+    ];
     const jumpscares = [
         "jumpscare.jpg",
         "jumpscare2.webp",
-        "jumpscare3.webp"];
+        "jumpscare3.webp",
+        "jumpscare4.jpg",
+        "jumpscare5.jpg"];
     const jumpframes = [
         "jumpscare.jpg",
         "jumpscare2.webp",
-        "jumpscare3.webp"];
+        "jumpscare3.webp",
+        "jumpscare4.jpg",
+        "jumpscare5.jpg"];
+        const jumpscaressounds = [
+            "jumpscare.mp3",
+            "jumpscare1.mp3"];
     const ammo = [
         { name: "Cargador", amount: 8, weaponId: "Makarov PM", image: "clip.png", type: "ammo" },
         { name: "Cartuchos", amount: 2, weaponId: "Escopeta recortada", image: "shells.png", type: "ammo" },
@@ -741,24 +863,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 hp: 100,
                 damage: 10,
                 minDist: 0,
-                maxDist: 1200,
+                maxDist: 3000,
                 attackChance: 1
             },
             {
                 name: "El bloqueador",
                 hp: 125,
                 damage: 30,
-                minDist: 800,
-                maxDist: 1200,
+                minDist: 2000,
+                maxDist: 3000,
                 attackChance: 1
             },
             {
                 name: "El acechante",
                 hp: 150,
                 damage: 15,
-                minDist: 400,
-                maxDist: 1200,
-                attackChance: 0.5
+                minDist: 1000,
+                maxDist: 3000,
+                attackChance: 1
             }
         ];
     } else if (dificultad === "avanzado") {
@@ -790,17 +912,131 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
     }
 }
-
     /* FUNCIONES */
+    function updateGOstats() {
+
+        stopAllSounds();
+
+        document.getElementById("traveleddist").textContent = 
+        `Distancia recorrida: ${distance} metros`;
+
+        document.getElementById("kills").textContent = 
+        `Enemigos derrotados: ${enemiesDefeated}`;
+
+    }
+    function campaignEnding() {
+    if (gameMode !== "campaign") return;
+
+        thinkBox.innerHTML = `
+        <h3>...</h3>
+        <p>Llegaste hasta el final... Pero esto recién empieza.</p>
+    `;
+
+    gameActive = false;
+    clearInterval(distanceInterval);
+
+    advanceBtn.disabled = true;
+    attackBtn.disabled = true;
+    defendBtn.disabled = true;
+
+    setTimeout(() => {
+        changeScene("menu");
+        stopAllSounds();
+        menuambience.currentTime = 0;
+    menuambience.play();
+    }, 5000);
+}
+    function stopAllSounds() {
+    Object.values(sounds).forEach(sound => {
+        if (!sound) return;
+
+        sound.pause();
+        sound.currentTime = 0;
+    });
+  
+    document.querySelectorAll("audio").forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
+    });
+
+    currentAmbience = null;
+    whisperPlaying = false;
+    tensebeatPlaying = false;
+}
+    function fadeIn() {
+    let fadeIn = setInterval(() => {
+        if (audioElement.volume < 0.95) {
+            audioElement.volume += 0.05;
+        } else {
+            clearInterval(fadeIn);
+        }
+    }, 100);
+}
+    function changeAmbience(ambienceName) {
+
+    // Si ya está sonando este ambiente, no hacer nada
+    if (currentAmbience === ambienceName) return;
+
+    // Detener todos los ambientes
+    Object.values(sounds).forEach(sound => {
+        if (sound && sound.loop) {
+            sound.pause();
+            sound.currentTime = 0;
+        }
+    });
+
+    // Reproducir el nuevo
+    const newAmbience = sounds[ambienceName];
+
+    if (newAmbience) {
+        newAmbience.volume = 1.0;
+        newAmbience.play();
+        currentAmbience = ambienceName;
+    }
+}
+    function updateAmbience() {
+
+    if (gameMode !== "campaign") return;
+
+    const ambience = ambiences.find(a =>
+        distance >= a.start && distance < a.end
+    );
+
+    if (!ambience) return;
+
+    changeAmbience(ambience.name);
+}
+    function checkDialogues() {
+
+        console.log("Checking dialogues...", distance);
+
+    if (gameMode !== "campaign") return;
+
+    for (let d of dialogues) {
+
+        if (
+            distance >= d.distance &&
+            !triggeredDialogues.has(d.distance) &&
+            Date.now() - lastDialogueTime > dialogueCooldown
+        ) {
+            showDialogue(d.content);
+            triggeredDialogues.add(d.distance);
+            lastDialogueTime = Date.now();
+            break; // evita que se disparen varios en el mismo frame
+        }
+    }
+}
     function updatePlayerPortrait() {
     const img = document.getElementById("playerImage");
 
-    if (health > 70) {
+    if (health > 75 ) {
         img.src = "assets/images/prota.png";
     } else if (health > 50) {
         img.src = "assets/images/prota1.png";
-    } else if (health > 20) {
+    } else if (health > 25) {
         img.src = "assets/images/prota2.png";
+    } else if (health > 0) {
+        img.src = "assets/images/prota3.png";
     }
 }
     function updateCombatHUD() {
@@ -831,7 +1067,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return posibles[Math.floor(Math.random() * posibles.length)];
 }
+function showDialogue(text) {
+    thinkBox.innerHTML = `<p>${text}</p>`;
+}
     function iniciarJuego() {
+        triggeredDialogues = new Set();
+lastDialogueTime = 0;
     changeScene('game');
     updateUI();
     startEnergyRecovery();
@@ -916,7 +1157,7 @@ function showImage(imgName, duration) {
   }
 
   // jumpscare completo SOLO con ansiedad alta
-  if (anxiety >= 70 && Math.random() < 0.30) {
+  if (anxiety >= 70 && Math.random() < 0.10) {
     showjumpscare();
   }
 }
@@ -925,17 +1166,21 @@ function showImage(imgName, duration) {
   showImage(img, 80); // duración corta
 }
 function showjumpscare() {
-  const img = randomFrom(jumpscares);
+    const audioFile = randomFrom(jumpscaressounds);
+    const img = randomFrom(jumpscares);
 
-  showImage(img, 800); // dura más
-  JumpscareSound.currentTime = 0;
-  JumpscareSound.play();
+    showImage(img, 800);
 
-  health -= 10;
-  if (health < 0) health = 0;
+    const jumpscareAudio = document.getElementById("JumpscareSound");
+    jumpscareAudio.src = `assets/sounds/${audioFile}`;
+    jumpscareAudio.currentTime = 0;
+    jumpscareAudio.play();
 
-updatePlayerPortrait();
-  updateUI();
+    health -= 10;
+    if (health < 0) health = 0;
+
+    updatePlayerPortrait();
+    updateUI();
 }
     function startMaxAnxietyDamage() {
     clearInterval(anxietyDamageInterval);
@@ -962,13 +1207,13 @@ updatePlayerPortrait();
                 gameActive = false;
                 advanceBtn.disabled = true;
                 attackBtn.disabled = true;
-                restartBtn.disabled = false;
                 defendBtn.disabled = true;
 
                 sounds["Death"].currentTime = 0;
                 sounds["Death"].play();
 
                 changeScene('gameover');
+                updateGOstats();
             }
         }
     }, 2000); // cada 3 segundos
@@ -1024,12 +1269,13 @@ updatePlayerPortrait();
         gameActive = false;
         advanceBtn.disabled = true;
         attackBtn.disabled = true;
-        restartBtn.disabled = false;
+        
         defendBtn.disabled = true;
         clearInterval(energyInterval);
         sounds["Death"].currentTime = 0;
         sounds["Death"].play();
         changeScene('gameover');
+        updateGOstats();
     }
     
     updateUI();
@@ -1038,7 +1284,7 @@ updatePlayerPortrait();
     if (enemyAlive && gameActive && health > 0) {
         setTimeout(() => {
             ataqueAutomaticoEnemigo();
-        }, 5000);
+        }, 7000);
     }
 }
     function startAttackCooldown(time) {
@@ -1054,9 +1300,9 @@ updatePlayerPortrait();
     }, time);
 }
     function getEnemyChance() {
-    if (anxiety < 40) return 0.10;
-    if (anxiety < 70) return 0.20;
-    return 0.30;
+    if (anxiety < 40) return 0.05;
+    if (anxiety < 70) return 0.10;
+    return 0.15;
 }
 function playWhisper() {
     if (anxiety >= 40 && !whisperPlaying) {
@@ -1087,9 +1333,15 @@ function playTension() {
     }
 }
     function changeScene(id) {
-        document.querySelectorAll('.scene').forEach(s => s.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
+    document.querySelectorAll('.scene').forEach(s => {
+        s.classList.add('hidden');
+    });
+
+    const scene = document.getElementById(id);
+    if (scene) {
+        scene.classList.remove('hidden');
     }
+}
 
     function updateUI() {
         distanceText.textContent = `Distancia: ${distance} metros`;
@@ -1232,14 +1484,14 @@ function playTension() {
         const item = pendingItem.data;
 
         if (item === "Botiquin") {
-            health = Math.min(health + 30, 100);
+            health = Math.min(health + 50, 100);
             updatePlayerPortrait();
             thinkBox.innerHTML = "<p>Encontré un botiquín, recuperé mi salud como se debe, que alivio.</p>";
             flashBackground("#03B500");
             playItemSound("Botiquin");
         } 
         else if (item === "Vendaje") {
-            health = Math.min(health + 10, 100);
+            health = Math.min(health + 15, 100);
             updatePlayerPortrait();
             thinkBox.innerHTML = "<p>Encontré un vendaje, por el momento me sirve para resistir un poco el dolor...</p>";
             flashBackground("#649412");
@@ -1252,7 +1504,7 @@ function playTension() {
             playItemSound("Monster Energy");
         }
         else if (item === "Clonazepam") {
-            anxiety = Math.max(anxiety - 30, 0);
+            anxiety = Math.max(anxiety - 50, 0);
             thinkBox.innerHTML = "<p>Encontré Clonazepam, unas pastillas para la ansiedad, me siento más relajado momentáneamente.</p>";
             flashBackground("#7F00E0");
             playItemSound("Clonazepam");
@@ -1288,7 +1540,7 @@ function playTension() {
                 energy += 1;
                 updateUI();
             }
-        }, 600);
+        }, 250);
     }
     function startAnxietyRecovery() {
         clearInterval(anxietyInterval);
@@ -1297,10 +1549,11 @@ function playTension() {
                 anxiety += 1;
                 updateUI();
             }
-        }, 600);
+        }, 700);
     }
     function resetGame() {
     // Estado base
+    enemiesDefeated = 0;
     distance = 0;
     energy = 100;
     health = 100;
@@ -1317,14 +1570,8 @@ function playTension() {
 
     updateUI();
 
-    thinkBox.innerHTML = `
-        <h3>Pensamientos...</h3>
-<p>Tengo que llegar a la escuela, aunque tengo un raro presentimiento,
-            como si algo me lo estuviera impidiendo...voy a tratar de resistir el mayor tiempo posible.</p>`;
-
     advanceBtn.disabled = false;
     attackBtn.disabled = true;
-    restartBtn.disabled = true;
     defendBtn.disabled = true;
 
     startEnergyRecovery();
@@ -1334,6 +1581,13 @@ function playTension() {
     startMaxAnxietyDamage();
 }
     /* EVENTOS */
+    fixColorBtn.addEventListener("click", () => {
+
+    document.body.style.background = "#290000";
+
+    sounds["Button"].play();
+
+});
     document.getElementById('originalBtn').addEventListener('click', () => {
     dificultad = "original";
     document.getElementById("cursor").style.animationDuration = "2s";
@@ -1341,7 +1595,9 @@ function playTension() {
     sounds["Night"].loop = true;
         sounds["Night"].volume = 1.0;
         sounds["Night"].play();
+        resetGame();
     iniciarJuego();
+    checkDialogues();
 });
 
 document.getElementById('avanzadoBtn').addEventListener('click', () => {
@@ -1351,22 +1607,29 @@ document.getElementById('avanzadoBtn').addEventListener('click', () => {
     sounds["Night"].loop = true;
         sounds["Night"].volume = 1.0;
         sounds["Night"].play();
+        resetGame();
     iniciarJuego();
+    checkDialogues();
 });
    mainMenuBtn.addEventListener('click', () => {
         resetGame();
         updatePlayerPortrait();
         sounds["Button"].currentTime = 0;
         sounds["Button"].play();
+        stopAllSounds();
         changeScene('menu');
         updateUI();
         const menuambience = sounds["Menu Ambiente"];
+
+        night.pause();          
+        night.currentTime =
 
     menuambience.currentTime = 0;
     menuambience.play();
 });
     startBtn.addEventListener('click', () => {
         changeScene('modeSelect');
+        checkDialogues();
         
         sounds["Button"].currentTime = 0;
         sounds["Button"].play();
@@ -1450,17 +1713,6 @@ document.getElementById('avanzadoBtn').addEventListener('click', () => {
         pendingItem = null;
         changeScene("game")
     });
-    restartBtn.addEventListener('click', () => {
-        updateCombatHUD();
-    resetGame();
-    updatePlayerPortrait();
-    canAttack = true;
-    canDefend = true;
-    clearTimeout(attackCooldownTimeout);
-    sounds["Button"].currentTime = 0;
-    sounds["Button"].play();
-    changeScene('game');
-});
 helpBtn.addEventListener('click', () => {
     changeScene('help');
     sounds["Button"].currentTime = 0;
@@ -1475,9 +1727,21 @@ backBtn.addEventListener('click', () => {
     const menuambience = sounds["Menu Ambiente"];
 })
     survivalBtn.addEventListener('click', () => {
-    changeScene('difficultySelect');  // Cambia a selección de dificultad
+    gameMode = "survival";
+    changeScene('difficultySelect');
+    checkDialogues();
     sounds["Button"].currentTime = 0;
     sounds["Button"].play();
+    thinkBox.innerHTML = "<p>Tengo que llegar a la escuela, aunque tengo un raro presentimiento... voy a tratar de resistir el mayor tiempo posible.</p>";
+});
+campaignBtn.addEventListener('click', () => {
+    gameMode = "campaign";
+    changeScene('difficultySelect');
+    checkDialogues();
+    sounds["Button"].currentTime = 0;
+    sounds["Button"].play();
+    thinkBox.innerHTML = "<p>Tengo que llegar a la escuela, me duele mucho la cabeza, ademas, siento un raro presentimiento.</p>";
+    
 });
 
     advanceBtn.addEventListener('click', () => {
@@ -1497,7 +1761,7 @@ backBtn.addEventListener('click', () => {
         }
     }, 1000);
 
-    const ITEM_CHANCE = 0.20;
+    const ITEM_CHANCE = 0.25;
 
     if (Math.random() < ITEM_CHANCE) {
         encontrarObjeto();
@@ -1505,10 +1769,15 @@ backBtn.addEventListener('click', () => {
     }
 
     distance += 20;
+
     energy -= 10;
 
-    if (distance >= 1200 && gameActive) {
-        triggerEnding();
+    updateAmbience();
+    updateUI();
+
+    if (distance >= 3000 && gameMode === "campaign") {
+        campaignEnding();
+        return;
     }
 
     const enemy = getEnemyByDistance(distance);
@@ -1540,11 +1809,13 @@ backBtn.addEventListener('click', () => {
         if (enemyAlive && gameActive && currentEnemy) {
             ataqueAutomaticoEnemigo();
         }
-    }, 5000); // Primer ataque en 1 segundo
+    }, 7000); // Primer ataque en 1 segundo
     
 } else {
     thinkBox.innerHTML = "<p>Sigo avanzando entre la oscuridad y la soledad...</p>";
 }
+updateAmbience();
+checkDialogues();
 tryAmbientSound();
 tryJumpscare();
     updateUI();
@@ -1582,7 +1853,7 @@ lo voy a tener que abandonar.
         updateUI();
     }
 
-    // ✅ ACIERTO
+
     sounds["Hit"].currentTime = 0;
     sounds["Hit"].play();
 
@@ -1594,6 +1865,7 @@ lo voy a tener que abandonar.
     startAttackCooldown(cooldown);
 
     if (enemyHealth <= 0) {
+        enemiesDefeated += 1;
         enemyAlive = false;
         attackBtn.disabled = true;
         advanceBtn.disabled = false;
@@ -1604,11 +1876,11 @@ lo voy a tener que abandonar.
 
     if (health <= 0) {
         gameActive = false;
-        restartBtn.disabled = false;
         clearInterval(energyInterval);
         sounds["Death"].currentTime = 0;
         sounds["Death"].play();
         changeScene('gameover');
+        updateGOstats()
     }
 
     updateUI();
